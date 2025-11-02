@@ -142,35 +142,56 @@
       }, 1200);
     }
 
-    // ---- Drag logic ----
+    // ---- Drag logic (mouse + touch) ----
     let isDragging = false;
     let startX;
     let scrollLeft = 0;
 
-    scene.addEventListener('mousedown', (e) => {
+    function startDrag(clientX) {
       isDragging = true;
-      startX = e.pageX - scene.offsetLeft;
+      startX = clientX - scene.offsetLeft;
       scrollLeft = scene.scrollLeft;
       scene.style.cursor = 'grabbing';
-    });
+    }
 
-    scene.addEventListener('mouseleave', () => {
+    function moveDrag(clientX) {
+      if (!isDragging) return;
+      const x = clientX - scene.offsetLeft;
+      const walk = (x - startX) * 1.5;
+      scene.scrollLeft = scrollLeft - walk;
+    }
+
+    function endDrag() {
       isDragging = false;
       scene.style.cursor = 'grab';
-    });
+    }
 
-    scene.addEventListener('mouseup', () => {
-      isDragging = false;
-      scene.style.cursor = 'grab';
-    });
-
+    // Mouse events
+    scene.addEventListener('mousedown', (e) => startDrag(e.pageX));
     scene.addEventListener('mousemove', (e) => {
       if (!isDragging) return;
       e.preventDefault();
-      const x = e.pageX - scene.offsetLeft;
-      const walk = (x - startX) * 1.5;
-      scene.scrollLeft = scrollLeft - walk;
+      moveDrag(e.pageX);
     });
+    scene.addEventListener('mouseup', endDrag);
+    scene.addEventListener('mouseleave', endDrag);
+
+    // Touch events (for phones/tablets)
+    scene.addEventListener('touchstart', (e) => {
+      // use the first touch point
+      startDrag(e.touches[0].pageX);
+    }, { passive: true });
+
+    scene.addEventListener('touchmove', (e) => {
+      // prevent page from scrolling while dragging horizontally
+      if (!isDragging) return;
+      e.preventDefault();
+      moveDrag(e.touches[0].pageX);
+    }, { passive: false });
+
+    scene.addEventListener('touchend', endDrag);
+    scene.addEventListener('touchcancel', endDrag);
+  
   </script>
 </body>
 </html>
