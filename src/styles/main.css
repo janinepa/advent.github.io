@@ -1,0 +1,60 @@
+body {
+    font-family: Arial, sans-serif;
+    background-color: #f0f0f0;
+    margin: 0;
+    padding: 0;
+}
+
+header {
+    background-color: #4CAF50;
+    color: white;
+    padding: 10px 0;
+    text-align: center;
+}
+
+.menu {
+    display: flex;
+    justify-content: center;
+    margin: 20px 0;
+}
+
+.menu a {
+    margin: 0 15px;
+    text-decoration: none;
+    color: #4CAF50;
+    font-weight: bold;
+}
+
+.menu a:hover {
+    text-decoration: underline;
+}
+
+.calendar {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 10px;
+    padding: 20px;
+}
+
+.door {
+    background-color: white;
+    border: 2px solid #4CAF50;
+    border-radius: 5px;
+    text-align: center;
+    padding: 20px;
+    transition: transform 0.2s;
+}
+
+.door:hover {
+    transform: scale(1.05);
+}
+
+.video {
+    width: 100%;
+    height: auto;
+}
+
+.riddle {
+    margin-top: 10px;
+    font-style: italic;
+}

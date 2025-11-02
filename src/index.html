@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Advent Calendar - Interactive Village</title>
+  <style>
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      overflow: hidden;
+      font-family: "Poppins", sans-serif;
+      color: white;
+      height: 100vh;
+      background: black;
+      user-select: none;
+    }
+
+    /* Container for video + doors */
+    .scene {
+      position: relative;
+      width: 250vw; /* 3x screen width, you can adjust */
+      height: 100vh;
+      overflow: hidden;
+      cursor: grab;
+    }
+
+    .scene:active {
+      cursor: grabbing;
+    }
+
+    /* Background video */
+    #bg-video {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      filter: brightness(0.5);
+      z-index: 0;
+      pointer-events: none;
+    }
+
+    /* Door styling */
+    .door {
+      position: absolute;
+      width: 80px;
+      height: 120px;
+      border: 2px solid #b89b5e;
+      border-radius: 8px;
+      background-size: cover;
+      background-position: center;
+      box-shadow: 0 0 10px rgba(0,0,0,0.5);
+      transition: transform 0.8s ease;
+      z-index: 1;
+      cursor: pointer;
+    }
+
+    .door:hover {
+      transform: scale(1.1);
+    }
+
+    .door.open {
+      animation: doorOpen 1.2s forwards ease;
+    }
+
+    @keyframes doorOpen {
+      0% { transform: scale(1) rotateY(0); }
+      30% { transform: scale(1.1); }
+      100% { transform: scale(1.2) rotateY(-120deg);  }
+    }
+
+    h1 {
+      position: fixed;
+      top: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 10;
+      font-size: 2rem;
+      text-shadow: 0 0 10px rgba(255,255,255,0.7);
+    }
+  </style>
+</head>
+<body>
+  <h1>Advent Calender 2025</h1>
+
+  <div class="scene" id="scene">
+    <video id="bg-video" autoplay loop muted playsinline>
+      <source src="assets/videos/background2.mp4" type="video/mp4">
+      Your browser does not support video playback.
+    </video>
+  </div>
+
+  <script>
+    const scene = document.getElementById('scene');
+
+    // Define door positions (x%, y%) over the background video
+    const doorPositions = [
+      { x: 5, y: 60 },
+      { x: 10, y: 65 },
+      { x: 16, y: 58 },
+      { x: 22, y: 62 },
+      { x: 28, y: 59 },
+      { x: 35, y: 63 },
+      { x: 42, y: 61 },
+      { x: 48, y: 64 },
+      { x: 55, y: 60 },
+      { x: 61, y: 66 },
+      { x: 68, y: 59 },
+      { x: 74, y: 63 },
+      { x: 80, y: 61 },
+      { x: 86, y: 65 },
+      { x: 92, y: 58 },
+      { x: 98, y: 62 },
+      { x: 104, y: 60 },
+      { x: 110, y: 64 },
+      { x: 116, y: 59 },
+      { x: 122, y: 63 },
+      { x: 128, y: 61 },
+      { x: 134, y: 65 },
+      { x: 140, y: 60 },
+      { x: 146, y: 62 },
+    ];
+
+    // Create the 24 doors dynamically
+    for (let i = 1; i <= 24; i++) {
+      const door = document.createElement('div');
+      door.className = 'door';
+      door.style.left = doorPositions[i - 1].x + '%';
+      door.style.top = doorPositions[i - 1].y + '%';
+      door.style.backgroundImage = `url('assets/images/doors/door-0${i}.png')`;
+      door.addEventListener('click', () => openDoor(i, door));
+      scene.appendChild(door);
+    }
+
+    function openDoor(day, doorEl) {
+      doorEl.classList.add('open');
+      setTimeout(() => {
+        window.location.href = `../doors/day-0${day}.html`;
+      }, 1200);
+    }
+
+    // ---- Drag logic ----
+    let isDragging = false;
+    let startX;
+    let scrollLeft = 0;
+
+    scene.addEventListener('mousedown', (e) => {
+      isDragging = true;
+      startX = e.pageX - scene.offsetLeft;
+      scrollLeft = scene.scrollLeft;
+      scene.style.cursor = 'grabbing';
+    });
+
+    scene.addEventListener('mouseleave', () => {
+      isDragging = false;
+      scene.style.cursor = 'grab';
+    });
+
+    scene.addEventListener('mouseup', () => {
+      isDragging = false;
+      scene.style.cursor = 'grab';
+    });
+
+    scene.addEventListener('mousemove', (e) => {
+      if (!isDragging) return;
+      e.preventDefault();
+      const x = e.pageX - scene.offsetLeft;
+      const walk = (x - startX) * 1.5;
+      scene.scrollLeft = scrollLeft - walk;
+    });
+  </script>
+</body>
+</html>

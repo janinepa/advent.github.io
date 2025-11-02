@@ -1,0 +1,164 @@
+<!-- ...existing code... -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Advent Calendar - Day 1</title>
+    <link rel="stylesheet" href="../styles/main.css">
+    <style>
+        /* make the page background a cozy winter image */
+        body {
+            margin: 0;
+            height: 100vh;
+            background: url('../assets/images/winter-background.jpg') center/cover no-repeat;
+            font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+            color: #fff;
+        }
+
+        /* full-viewport video */
+        .door video {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            object-fit: cover;
+            z-index: 1;
+            background: black;
+        }
+
+        /* overlay that appears after video ends */
+        .answer-overlay {
+            position: fixed;
+            inset: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 2;
+            pointer-events: none; /* disabled until shown */
+        }
+
+        .answer-card {
+            background: rgba(0,0,0,0.6);
+            padding: 24px;
+            border-radius: 12px;
+            backdrop-filter: blur(4px);
+            text-align: center;
+            min-width: 280px;
+            pointer-events: auto;
+        }
+
+        .answer-card input[type="text"] {
+            width: 100%;
+            padding: 10px;
+            border-radius: 8px;
+            border: 1px solid rgba(255,255,255,0.2);
+            background: rgba(255,255,255,0.06);
+            color: #fff;
+            margin-top: 12px;
+            box-sizing: border-box;
+        }
+
+        .answer-card button {
+            margin-top: 12px;
+            padding: 8px 14px;
+            border-radius: 8px;
+            border: none;
+            background: #ff7a18;
+            color: #fff;
+            cursor: pointer;
+        }
+
+        .hidden { display: none; }
+    </style>
+</head>
+<body>
+    <!-- main door container (video fills viewport) -->
+    <div class="door" aria-hidden="false">
+        <h1 style="position:fixed;left:16px;top:16px;z-index:3;margin:0;font-size:18px">Day 1</h1>
+        <video id="dayVideo" controls playsinline>
+            <!-- .mov commonly uses video/quicktime -->
+            <source src="../assets/videos/day-01.mov" type="video/quicktime">
+            Your browser does not support the video tag.
+        </video>
+    </div>
+
+    <!-- overlay that shows input after video ends -->
+    <div id="answerOverlay" class="answer-overlay hidden" role="dialog" aria-modal="true" aria-hidden="true">
+        <div class="answer-card">
+            <div id="prompt">Riddle: What has keys but can't open locks?</div>
+            <input id="answerInput" type="text" placeholder="Type your answer..." aria-label="Answer input" />
+            <div>
+                <button id="submitBtn">Submit</button>
+                <button id="retryBtn" class="hidden">Try again</button>
+            </div>
+            <div id="result" style="margin-top:12px;font-weight:600"></div>
+            <a href="../index.html" style="display:block;margin-top:10px;color:#fff;opacity:0.9">Back to Menu</a>
+        </div>
+    </div>
+
+    <script>
+        (function () {
+            const correctAnswer = 'fire'; // expected answer (case-insensitive)
+            const video = document.getElementById('dayVideo');
+            const overlay = document.getElementById('answerOverlay');
+            const input = document.getElementById('answerInput');
+            const submitBtn = document.getElementById('submitBtn');
+            const retryBtn = document.getElementById('retryBtn');
+            const result = document.getElementById('result');
+
+            function showOverlay() {
+                overlay.classList.remove('hidden');
+                overlay.setAttribute('aria-hidden', 'false');
+                input.value = '';
+                result.textContent = '';
+                retryBtn.classList.add('hidden');
+                submitBtn.classList.remove('hidden');
+                setTimeout(() => input.focus(), 50);
+            }
+
+            function hideOverlay() {
+                overlay.classList.add('hidden');
+                overlay.setAttribute('aria-hidden', 'true');
+            }
+
+            function checkAnswer() {
+                const val = (input.value || '').trim().toLowerCase();
+                if (val === correctAnswer) {
+                    result.style.color = '#7CFC00';
+                    result.textContent = 'Correct 🎉';
+                    submitBtn.classList.add('hidden');
+                    retryBtn.classList.add('hidden');
+                } else {
+                    result.style.color = '#FF6B6B';
+                    result.textContent = 'Wrong — try again';
+                    retryBtn.classList.remove('hidden');
+                }
+            }
+
+            // show the overlay when the video ends
+            video.addEventListener('ended', showOverlay);
+
+            // allow pressing Enter in the input to submit
+            input.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter') {
+                    checkAnswer();
+                }
+            });
+
+            submitBtn.addEventListener('click', checkAnswer);
+            retryBtn.addEventListener('click', () => {
+                input.value = '';
+                input.focus();
+                result.textContent = '';
+            });
+
+            // Optional: start playing automatically on supported browsers
+            video.autoplay = true;
+            // If autoplay is blocked, user can click play (controls are visible).
+        })();
+    </script>
+</body>
+</html>
+<!-- ...existing code... -->

@@ -1,0 +1,23 @@
+{
+  "name": "advent-calendar-web",
+  "version": "1.0.0",
+  "description": "An interactive Advent calendar web application featuring daily doors with videos and riddles.",
+  "main": "src/index.html",
+  "scripts": {
+    "start": "live-server src",
+    "build": "echo 'Build step not defined'",
+    "deploy": "gh-pages -d src"
+  },
+  "keywords": [
+    "advent",
+    "calendar",
+    "web",
+    "application"
+  ],
+  "author": "Your Name",
+  "license": "MIT",
+  "dependencies": {
+    "live-server": "^1.2.1",
+    "gh-pages": "^3.2.3"
+  }
+}
