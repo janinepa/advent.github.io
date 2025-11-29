@@ -1,22 +1,24 @@
-<!DOCTYPE html>
+import os
+
+template = """<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-    <title>Advent Calendar - Day 5</title>
+    <title>Advent Calendar - Day {day_num}</title>
     <link rel="stylesheet" href="../styles/main.css">
     <style>
         /* make the page background a cozy winter image */
-        body {
+        body {{
             margin: 0;
             height: 100vh;
             background: url('../assets/images/winter-background.jpg') center/cover no-repeat;
             font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
             color: #fff;
-        }
+        }}
 
         /* full-viewport video */
-        .door video {
+        .door video {{
             position: fixed;
             top: 0;
             left: 0;
@@ -25,10 +27,10 @@
             object-fit: cover;
             z-index: 1;
             background: black;
-        }
+        }}
 
         /* overlay that appears after video ends */
-        .answer-overlay {
+        .answer-overlay {{
             position: fixed;
             inset: 0;
             display: flex;
@@ -36,9 +38,9 @@
             justify-content: center;
             z-index: 2;
             pointer-events: none; /* disabled until shown */
-        }
+        }}
 
-        .answer-card {
+        .answer-card {{
             background: rgba(0,0,0,0.6);
             padding: 24px;
             border-radius: 12px;
@@ -46,9 +48,9 @@
             text-align: center;
             min-width: 280px;
             pointer-events: auto;
-        }
+        }}
 
-        .answer-card input[type="text"] {
+        .answer-card input[type="text"] {{
             width: 100%;
             padding: 10px;
             border-radius: 8px;
@@ -57,9 +59,9 @@
             color: #fff;
             margin-top: 12px;
             box-sizing: border-box;
-        }
+        }}
 
-        .answer-card button {
+        .answer-card button {{
             margin-top: 12px;
             padding: 8px 14px;
             border-radius: 8px;
@@ -67,18 +69,18 @@
             background: #ff7a18;
             color: #fff;
             cursor: pointer;
-        }
+        }}
 
-        .hidden { display: none; }
+        .hidden {{ display: none; }}
     </style>
 </head>
 <body>
     <!-- main door container (video fills viewport) -->
     <div class="door" aria-hidden="false">
-        <h1 style="position:fixed;left:16px;top:16px;z-index:3;margin:0;font-size:18px">Day 5</h1>
+        <h1 style="position:fixed;left:16px;top:16px;z-index:3;margin:0;font-size:18px">Day {day_num}</h1>
         <video id="dayVideo" controls playsinline>
             <!-- .mov commonly uses video/quicktime -->
-            <source src="../assets/videos/day-05.mp4" type="video/mp4">
+            <source src="../assets/videos/day-{day_str}.mp4" type="video/mp4">
             Your browser does not support the video tag.
         </video>
     </div>
@@ -86,7 +88,7 @@
     <!-- overlay that shows input after video ends -->
     <div id="answerOverlay" class="answer-overlay hidden" role="dialog" aria-modal="true" aria-hidden="true">
         <div class="answer-card">
-            <div id="prompt">Riddle: Placeholder riddle for Day 5?</div>
+            <div id="prompt">Riddle: Placeholder riddle for Day {day_num}?</div>
             <input id="answerInput" type="text" placeholder="Type your answer..." aria-label="Answer input" />
             <div>
                 <button id="submitBtn">Submit</button>
@@ -98,7 +100,7 @@
     </div>
 
     <script>
-        (function () {
+        (function () {{
             const correctAnswer = 'placeholder'; // expected answer (case-insensitive)
             const video = document.getElementById('dayVideo');
             const overlay = document.getElementById('answerOverlay');
@@ -107,7 +109,7 @@
             const retryBtn = document.getElementById('retryBtn');
             const result = document.getElementById('result');
 
-            function showOverlay() {
+            function showOverlay() {{
                 overlay.classList.remove('hidden');
                 overlay.setAttribute('aria-hidden', 'false');
                 input.value = '';
@@ -115,48 +117,61 @@
                 retryBtn.classList.add('hidden');
                 submitBtn.classList.remove('hidden');
                 setTimeout(() => input.focus(), 50);
-            }
+            }}
 
-            function hideOverlay() {
+            function hideOverlay() {{
                 overlay.classList.add('hidden');
                 overlay.setAttribute('aria-hidden', 'true');
-            }
+            }}
 
-            function checkAnswer() {
+            function checkAnswer() {{
                 const val = (input.value || '').trim().toLowerCase();
-                if (val === correctAnswer) {
+                if (val === correctAnswer) {{
                     result.style.color = '#7CFC00';
                     result.textContent = 'Correct 🎉';
                     submitBtn.classList.add('hidden');
                     retryBtn.classList.add('hidden');
-                } else {
+                }} else {{
                     result.style.color = '#FF6B6B';
                     result.textContent = 'Wrong — try again';
                     retryBtn.classList.remove('hidden');
-                }
-            }
+                }}
+            }}
 
             // show the overlay when the video ends
             video.addEventListener('ended', showOverlay);
 
             // allow pressing Enter in the input to submit
-            input.addEventListener('keydown', (e) => {
-                if (e.key === 'Enter') {
+            input.addEventListener('keydown', (e) => {{
+                if (e.key === 'Enter') {{
                     checkAnswer();
-                }
-            });
+                }}
+            }});
 
             submitBtn.addEventListener('click', checkAnswer);
-            retryBtn.addEventListener('click', () => {
+            retryBtn.addEventListener('click', () => {{
                 input.value = '';
                 input.focus();
                 result.textContent = '';
-            });
+            }});
 
             // Optional: start playing automatically on supported browsers
             video.autoplay = true;
             // If autoplay is blocked, user can click play (controls are visible).
-        })();
+        }})();
     </script>
 </body>
 </html>
+"""
+
+output_dir = "../doors"
+if not os.path.exists(output_dir):
+    os.makedirs(output_dir)
+
+for i in range(2, 25):
+    day_str = f"{i:02d}"
+    content = template.format(day_num=i, day_str=day_str)
+    file_path = os.path.join(output_dir, f"day-{day_str}.html")
+    with open(file_path, "w") as f:
+        f.write(content)
+    print(f"Generated {file_path}")
