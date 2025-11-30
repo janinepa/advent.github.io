@@ -132,6 +132,7 @@
                 if (val === correctAnswer) {
                     result.style.color = '#7CFC00';
                     result.textContent = 'Correct 🎉';
+                    triggerStarExplosion(); // Trigger animation
                     submitBtn.classList.add('hidden');
                     retryBtn.classList.add('hidden');
                 } else {
@@ -163,6 +164,7 @@
             // If autoplay is blocked, user can click play (controls are visible).
         })();
     </script>
+    <script src="../scripts/utils.js"></script>
 </body>
 
 </html>

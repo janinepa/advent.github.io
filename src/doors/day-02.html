@@ -14,6 +14,7 @@
             background: url('../assets/images/winter-background.jpg') center/cover no-repeat;
             font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
             color: #fff;
+            overflow: hidden;
         }
 
         /* full-viewport video */
@@ -29,46 +30,144 @@
         }
 
         /* overlay that appears after video ends */
-        .answer-overlay {
+        .puzzle-overlay {
             position: fixed;
             inset: 0;
             display: flex;
             align-items: center;
             justify-content: center;
             z-index: 2;
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(8px);
+            opacity: 0;
             pointer-events: none;
-            /* disabled until shown */
+            transition: opacity 0.5s ease;
         }
 
-        .answer-card {
-            background: rgba(0, 0, 0, 0.6);
-            padding: 24px;
-            border-radius: 12px;
-            backdrop-filter: blur(4px);
-            text-align: center;
-            min-width: 280px;
+        .puzzle-overlay.show {
+            opacity: 1;
             pointer-events: auto;
         }
 
-        .answer-card input[type="text"] {
-            width: 100%;
-            padding: 10px;
-            border-radius: 8px;
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            background: rgba(255, 255, 255, 0.06);
-            color: #fff;
-            margin-top: 12px;
-            box-sizing: border-box;
+        .puzzle-card {
+            background: rgba(20, 20, 20, 0.9);
+            padding: 20px;
+            border-radius: 16px;
+            border: 1px solid rgba(255, 215, 0, 0.3);
+            text-align: center;
+            max-width: 95vw;
+            max-height: 95vh;
+            overflow-y: auto;
+            box-shadow: 0 0 30px rgba(0, 0, 0, 0.8);
         }
 
-        .answer-card button {
-            margin-top: 12px;
-            padding: 8px 14px;
+        h2 {
+            margin-top: 0;
+            color: #ffd700;
+            text-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
+        }
+
+        .game-area {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
+            margin: 20px 0;
+        }
+
+        @media (min-width: 768px) {
+            .game-area {
+                flex-direction: row;
+                align-items: flex-start;
+            }
+        }
+
+        /* The 3x3 Grid Board */
+        .puzzle-board {
+            width: 300px;
+            height: 300px;
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            grid-template-rows: repeat(3, 1fr);
+            border: 2px solid #555;
+            background: #111;
+            box-shadow: inset 0 0 20px #000;
+        }
+
+        .drop-zone {
+            width: 100px;
+            height: 100px;
+            border: 1px dashed #333;
+            box-sizing: border-box;
+            position: relative;
+        }
+
+        .drop-zone.hovered {
+            background: rgba(255, 215, 0, 0.2);
+            border-color: #ffd700;
+        }
+
+        /* The Pieces Source Area */
+        .pieces-pool {
+            width: 320px;
+            min-height: 120px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            justify-content: center;
+            background: rgba(255, 255, 255, 0.05);
+            padding: 10px;
             border-radius: 8px;
+        }
+
+        .puzzle-piece {
+            width: 100px;
+            height: 100px;
+            background-image: url('../assets/images/puzzle.png');
+            background-size: 300px 300px;
+            cursor: grab;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.5);
+            transition: transform 0.1s;
+            touch-action: none;
+            /* Important for touch dragging */
+        }
+
+        .puzzle-piece:active {
+            cursor: grabbing;
+            transform: scale(1.05);
+            z-index: 100;
+        }
+
+        .puzzle-piece.correct {
             border: none;
-            background: #ff7a18;
-            color: #fff;
-            cursor: pointer;
+            cursor: default;
+        }
+
+        #successMessage {
+            color: #7CFC00;
+            font-weight: bold;
+            font-size: 1.2rem;
+            margin-top: 15px;
+            min-height: 1.5em;
+        }
+
+        .btn {
+            display: inline-block;
+            margin-top: 15px;
+            padding: 10px 20px;
+            background: #b89b5e;
+            color: #000;
+            text-decoration: none;
+            border-radius: 6px;
+            font-weight: bold;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s;
+        }
+
+        .btn.show {
+            opacity: 1;
+            pointer-events: auto;
         }
 
         .hidden {
@@ -79,90 +178,260 @@
 
 <body>
     <!-- main door container (video fills viewport) -->
-    <div class="door" aria-hidden="false">
+    <div class="door">
         <h1 style="position:fixed;left:16px;top:16px;z-index:3;margin:0;font-size:18px">Day 2</h1>
         <video id="dayVideo" controls playsinline>
-            <!-- .mov commonly uses video/quicktime -->
             <source src="../assets/videos/day-02.mp4" type="video/mp4">
             Your browser does not support the video tag.
         </video>
     </div>
 
-    <!-- overlay that shows input after video ends -->
-    <div id="answerOverlay" class="answer-overlay hidden" role="dialog" aria-modal="true" aria-hidden="true">
-        <div class="answer-card">
-            <div id="prompt">Riddle: Placeholder riddle for Day 2?</div>
-            <input id="answerInput" type="text" placeholder="Type your answer..." aria-label="Answer input" />
-            <div>
-                <button id="submitBtn">Submit</button>
-                <button id="retryBtn" class="hidden">Try again</button>
+    <!-- Puzzle Overlay -->
+    <div id="puzzleOverlay" class="puzzle-overlay">
+        <div class="puzzle-card">
+            <h2>The fountain is frozen and with it some starlight fragments!</h2>
+            <p>I need help restoring the image. Drag the pieces to the grid to reveal the scene!</p>
+
+            <div class="game-area">
+                <!-- The empty grid to drop pieces onto -->
+                <div id="board" class="puzzle-board"></div>
+
+                <!-- The pile of shuffled pieces -->
+                <div id="piecesPool" class="pieces-pool"></div>
             </div>
-            <div id="result" style="margin-top:12px;font-weight:600"></div>
-            <a href="../index.html" style="display:block;margin-top:10px;color:#fff;opacity:0.9">Back to the village</a>
+
+            <div id="successMessage"></div>
+            <a href="../index.html" id="backBtn" class="btn">Back to the village</a>
         </div>
     </div>
 
     <script>
         (function () {
-            const correctAnswer = 'placeholder'; // expected answer (case-insensitive)
             const video = document.getElementById('dayVideo');
-            const overlay = document.getElementById('answerOverlay');
-            const input = document.getElementById('answerInput');
-            const submitBtn = document.getElementById('submitBtn');
-            const retryBtn = document.getElementById('retryBtn');
-            const result = document.getElementById('result');
+            const overlay = document.getElementById('puzzleOverlay');
+            const board = document.getElementById('board');
+            const pool = document.getElementById('piecesPool');
+            const successMsg = document.getElementById('successMessage');
+            const backBtn = document.getElementById('backBtn');
 
-            function showOverlay() {
-                overlay.classList.remove('hidden');
-                overlay.setAttribute('aria-hidden', 'false');
-                input.value = '';
-                result.textContent = '';
-                retryBtn.classList.add('hidden');
-                submitBtn.classList.remove('hidden');
-                setTimeout(() => input.focus(), 50);
+            let draggedPiece = null;
+            let piecesCorrect = 0;
+            const totalPieces = 9;
+
+            // Initialize Game
+            function initGame() {
+                // Clear existing
+                board.innerHTML = '';
+                pool.innerHTML = '';
+                piecesCorrect = 0;
+
+                // Create 9 drop zones
+                for (let i = 0; i < 9; i++) {
+                    const zone = document.createElement('div');
+                    zone.classList.add('drop-zone');
+                    zone.dataset.index = i;
+                    board.appendChild(zone);
+                }
+
+                // Create 9 pieces
+                const pieces = [];
+                for (let i = 0; i < 9; i++) {
+                    const piece = document.createElement('div');
+                    piece.classList.add('puzzle-piece');
+                    piece.draggable = true;
+                    piece.dataset.index = i; // The correct position index
+
+                    // Calculate background position
+                    // Row: Math.floor(i / 3), Col: i % 3
+                    // Size 100px each
+                    const row = Math.floor(i / 3);
+                    const col = i % 3;
+                    piece.style.backgroundPosition = `-${col * 100}px -${row * 100}px`;
+
+                    pieces.push(piece);
+                }
+
+                // Shuffle pieces
+                pieces.sort(() => Math.random() - 0.5);
+
+                // Add to pool
+                pieces.forEach(p => pool.appendChild(p));
+
+                setupDragEvents();
             }
 
-            function hideOverlay() {
-                overlay.classList.add('hidden');
-                overlay.setAttribute('aria-hidden', 'true');
+            function setupDragEvents() {
+                const pieces = document.querySelectorAll('.puzzle-piece');
+                const zones = document.querySelectorAll('.drop-zone');
+
+                // --- Desktop Drag & Drop ---
+                pieces.forEach(piece => {
+                    piece.addEventListener('dragstart', (e) => {
+                        draggedPiece = piece;
+                        e.dataTransfer.setData('text/plain', piece.dataset.index);
+                        setTimeout(() => piece.style.opacity = '0.5', 0);
+                    });
+
+                    piece.addEventListener('dragend', () => {
+                        draggedPiece = null;
+                        piece.style.opacity = '1';
+                    });
+                });
+
+                zones.forEach(zone => {
+                    zone.addEventListener('dragover', (e) => {
+                        e.preventDefault(); // Allow drop
+                        zone.classList.add('hovered');
+                    });
+
+                    zone.addEventListener('dragleave', () => {
+                        zone.classList.remove('hovered');
+                    });
+
+                    zone.addEventListener('drop', (e) => {
+                        e.preventDefault();
+                        zone.classList.remove('hovered');
+
+                        if (draggedPiece) {
+                            handleDrop(draggedPiece, zone);
+                        }
+                    });
+                });
+
+                // --- Mobile Touch Drag & Drop ---
+                // We need custom logic because standard Drag API doesn't work well on touch
+                pieces.forEach(piece => {
+                    piece.addEventListener('touchstart', handleTouchStart, { passive: false });
+                    piece.addEventListener('touchmove', handleTouchMove, { passive: false });
+                    piece.addEventListener('touchend', handleTouchEnd);
+                });
             }
 
-            function checkAnswer() {
-                const val = (input.value || '').trim().toLowerCase();
-                if (val === correctAnswer) {
-                    result.style.color = '#7CFC00';
-                    result.textContent = 'Correct 🎉';
-                    submitBtn.classList.add('hidden');
-                    retryBtn.classList.add('hidden');
-                } else {
-                    result.style.color = '#FF6B6B';
-                    result.textContent = 'Wrong — try again';
-                    retryBtn.classList.remove('hidden');
+            // Touch State
+            let touchStartX = 0;
+            let touchStartY = 0;
+            let initialLeft = 0;
+            let initialTop = 0;
+            let activePiece = null;
+            let clone = null; // Visual clone for dragging
+
+            function handleTouchStart(e) {
+                e.preventDefault();
+                const touch = e.touches[0];
+                activePiece = e.target;
+
+                // Create a clone to drag around
+                clone = activePiece.cloneNode(true);
+                clone.style.position = 'fixed';
+                clone.style.zIndex = '1000';
+                clone.style.width = '100px';
+                clone.style.height = '100px';
+                clone.style.opacity = '0.8';
+                clone.style.pointerEvents = 'none'; // Let clicks pass through to detect drop zone
+
+                // Center clone on touch
+                updateClonePosition(touch.clientX, touch.clientY);
+
+                document.body.appendChild(clone);
+                activePiece.style.opacity = '0.3';
+            }
+
+            function handleTouchMove(e) {
+                e.preventDefault();
+                if (!clone) return;
+                const touch = e.touches[0];
+                updateClonePosition(touch.clientX, touch.clientY);
+            }
+
+            function handleTouchEnd(e) {
+                if (!clone) return;
+
+                // Find what element is under the drop point
+                // We use the last touch position
+                const touch = e.changedTouches[0];
+                clone.remove();
+                clone = null;
+                activePiece.style.opacity = '1';
+
+                // Hide the piece momentarily so we can see what's under it
+                activePiece.style.display = 'none';
+                const elemBelow = document.elementFromPoint(touch.clientX, touch.clientY);
+                activePiece.style.display = 'block';
+
+                const zone = elemBelow ? elemBelow.closest('.drop-zone') : null;
+                if (zone) {
+                    handleDrop(activePiece, zone);
+                }
+
+                activePiece = null;
+            }
+
+            function updateClonePosition(x, y) {
+                if (clone) {
+                    clone.style.left = (x - 50) + 'px';
+                    clone.style.top = (y - 50) + 'px';
                 }
             }
 
-            // show the overlay when the video ends
-            video.addEventListener('ended', showOverlay);
+            function handleDrop(piece, zone) {
+                // If zone already has a piece, swap them? 
+                // For simplicity: only allow drop if empty, OR swap with existing piece back to pool
 
-            // allow pressing Enter in the input to submit
-            input.addEventListener('keydown', (e) => {
-                if (e.key === 'Enter') {
-                    checkAnswer();
+                const existingPiece = zone.querySelector('.puzzle-piece');
+
+                if (existingPiece) {
+                    // Swap: move existing piece back to pool (or swap locations if we want complex logic)
+                    // Let's just move existing back to pool for simplicity
+                    pool.appendChild(existingPiece);
                 }
+
+                // Move dragged piece to zone
+                zone.appendChild(piece);
+
+                checkWin();
+            }
+
+            function checkWin() {
+                let correctCount = 0;
+                const zones = document.querySelectorAll('.drop-zone');
+
+                zones.forEach(zone => {
+                    const piece = zone.querySelector('.puzzle-piece');
+                    if (piece) {
+                        if (piece.dataset.index === zone.dataset.index) {
+                            correctCount++;
+                        }
+                    }
+                });
+
+                if (correctCount === totalPieces) {
+                    gameWon();
+                }
+            }
+
+            function gameWon() {
+                successMsg.textContent = "Puzzle Solved! You received the second spark of starlight.";
+                backBtn.classList.add('show');
+
+                // Optional: make the board look seamless
+                document.querySelectorAll('.drop-zone').forEach(z => z.style.border = 'none');
+
+                if (typeof triggerStarExplosion === 'function') {
+                    triggerStarExplosion();
+                }
+            }
+
+            // Show overlay when video ends
+            video.addEventListener('ended', () => {
+                overlay.classList.add('show');
+                initGame();
             });
 
-            submitBtn.addEventListener('click', checkAnswer);
-            retryBtn.addEventListener('click', () => {
-                input.value = '';
-                input.focus();
-                result.textContent = '';
-            });
-
-            // Optional: start playing automatically on supported browsers
+            // Auto-play setup
             video.autoplay = true;
-            // If autoplay is blocked, user can click play (controls are visible).
         })();
     </script>
+    <script src="../scripts/utils.js"></script>
 </body>
 
 </html>

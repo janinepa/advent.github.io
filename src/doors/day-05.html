@@ -88,79 +88,48 @@
         </video>
     </div>
 
-    <!-- overlay that shows input after video ends -->
+    <!-- overlay that shows task after video ends -->
     <div id="answerOverlay" class="answer-overlay hidden" role="dialog" aria-modal="true" aria-hidden="true">
         <div class="answer-card">
-            <div id="prompt">Riddle: Placeholder riddle for Day 5?</div>
-            <input id="answerInput" type="text" placeholder="Type your answer..." aria-label="Answer input" />
+            <h2 style="color:#ffd700;margin-top:0">Today's Task</h2>
+            <div id="prompt" style="font-size:1.2em;margin:20px 0">Send someone a letter today and tell them about your
+                favorite memory with them!</div>
             <div>
-                <button id="submitBtn">Submit</button>
-                <button id="retryBtn" class="hidden">Try again</button>
+                <button id="submitBtn">I will!</button>
             </div>
             <div id="result" style="margin-top:12px;font-weight:600"></div>
-            <a href="../index.html" style="display:block;margin-top:10px;color:#fff;opacity:0.9">Back to the village</a>
+            <a href="../index.html" id="backLink" style="display:none;margin-top:10px;color:#fff;opacity:0.9">Back to
+                the village</a>
         </div>
     </div>
 
     <script>
         (function () {
-            const correctAnswer = 'placeholder'; // expected answer (case-insensitive)
             const video = document.getElementById('dayVideo');
             const overlay = document.getElementById('answerOverlay');
-            const input = document.getElementById('answerInput');
             const submitBtn = document.getElementById('submitBtn');
-            const retryBtn = document.getElementById('retryBtn');
             const result = document.getElementById('result');
+            const backLink = document.getElementById('backLink');
 
             function showOverlay() {
                 overlay.classList.remove('hidden');
                 overlay.setAttribute('aria-hidden', 'false');
-                input.value = '';
-                result.textContent = '';
-                retryBtn.classList.add('hidden');
-                submitBtn.classList.remove('hidden');
-                setTimeout(() => input.focus(), 50);
             }
 
-            function hideOverlay() {
-                overlay.classList.add('hidden');
-                overlay.setAttribute('aria-hidden', 'true');
-            }
-
-            function checkAnswer() {
-                const val = (input.value || '').trim().toLowerCase();
-                if (val === correctAnswer) {
-                    result.style.color = '#7CFC00';
-                    result.textContent = 'Correct 🎉';
-                    submitBtn.classList.add('hidden');
-                    retryBtn.classList.add('hidden');
-                } else {
-                    result.style.color = '#FF6B6B';
-                    result.textContent = 'Wrong — try again';
-                    retryBtn.classList.remove('hidden');
-                }
+            function completeTask() {
+                result.style.color = '#7CFC00';
+                result.textContent = 'Spread the Christmas joy!';
+                submitBtn.classList.add('hidden');
+                backLink.style.display = 'block';
             }
 
             // show the overlay when the video ends
             video.addEventListener('ended', showOverlay);
 
-            // allow pressing Enter in the input to submit
-            input.addEventListener('keydown', (e) => {
-                if (e.key === 'Enter') {
-                    checkAnswer();
-                }
-            });
-
-            submitBtn.addEventListener('click', checkAnswer);
-            retryBtn.addEventListener('click', () => {
-                input.value = '';
-                input.focus();
-                result.textContent = '';
-            });
+            submitBtn.addEventListener('click', completeTask);
 
             // Optional: start playing automatically on supported browsers
             video.autoplay = true;
-            // If autoplay is blocked, user can click play (controls are visible).
         })();
     </script>
 </body>

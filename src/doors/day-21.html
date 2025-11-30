@@ -88,81 +88,182 @@
         </video>
     </div>
 
-    <!-- overlay that shows input after video ends -->
-    <div id="answerOverlay" class="answer-overlay hidden" role="dialog" aria-modal="true" aria-hidden="true">
-        <div class="answer-card">
-            <div id="prompt">Riddle: Placeholder riddle for Day 21?</div>
-            <input id="answerInput" type="text" placeholder="Type your answer..." aria-label="Answer input" />
-            <div>
-                <button id="submitBtn">Submit</button>
-                <button id="retryBtn" class="hidden">Try again</button>
+    <!-- Constellation Game Overlay -->
+    <div id="gameOverlay" class="answer-overlay hidden" role="dialog" aria-modal="true" aria-hidden="true">
+        <div class="answer-card" style="max-width: 90vw; width: 400px; padding: 10px;">
+            <h2 style="color:#ffd700;margin-top:0">Connect the Stars</h2>
+            <p style="margin-bottom:10px">Tap the stars in order (1-7) to reveal the Big Wagon!</p>
+
+            <div
+                style="position: relative; width: 300px; height: 300px; margin: 0 auto; background: rgba(0,0,0,0.3); border-radius: 50%; border: 1px solid rgba(255,255,255,0.1);">
+                <canvas id="constellationCanvas" width="300" height="300"
+                    style="position: absolute; top: 0; left: 0;"></canvas>
+                <!-- Stars will be placed here by JS -->
+                <div id="starsContainer"></div>
             </div>
-            <div id="result" style="margin-top:12px;font-weight:600"></div>
-            <a href="../index.html" style="display:block;margin-top:10px;color:#fff;opacity:0.9">Back to the village</a>
+
+            <div id="result" style="margin-top:12px;font-weight:600;min-height:1.5em"></div>
+            <a href="../index.html" id="backLink" style="display:none;margin-top:10px;color:#fff;opacity:0.9">Back to
+                the village</a>
         </div>
     </div>
 
     <script>
         (function () {
-            const correctAnswer = 'placeholder'; // expected answer (case-insensitive)
             const video = document.getElementById('dayVideo');
-            const overlay = document.getElementById('answerOverlay');
-            const input = document.getElementById('answerInput');
-            const submitBtn = document.getElementById('submitBtn');
-            const retryBtn = document.getElementById('retryBtn');
+            const overlay = document.getElementById('gameOverlay');
+            const canvas = document.getElementById('constellationCanvas');
+            const ctx = canvas.getContext('2d');
+            const starsContainer = document.getElementById('starsContainer');
             const result = document.getElementById('result');
+            const backLink = document.getElementById('backLink');
+
+            // Star coordinates (x, y) relative to 300x300 canvas
+            // Big Dipper / Big Wagon
+            const starPositions = [
+                { x: 40, y: 80 },   // 1. Alkaid (Handle tip)
+                { x: 90, y: 95 },   // 2. Mizar
+                { x: 130, y: 120 }, // 3. Alioth
+                { x: 160, y: 140 }, // 4. Megrez (Bowl join)
+                { x: 165, y: 210 }, // 5. Phecda (Bowl bottom)
+                { x: 240, y: 210 }, // 6. Merak (Bowl bottom outer)
+                { x: 240, y: 140 }  // 7. Dubhe (Bowl top outer)
+            ];
+
+            let currentStep = 0;
+            let isGameActive = false;
+
+            function initGame() {
+                starsContainer.innerHTML = '';
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                currentStep = 0;
+                isGameActive = true;
+
+                starPositions.forEach((pos, index) => {
+                    const star = document.createElement('div');
+                    star.className = 'star-point';
+                    star.style.left = `${pos.x - 10}px`;
+                    star.style.top = `${pos.y - 10}px`;
+                    star.textContent = index + 1;
+                    star.dataset.index = index;
+
+                    star.addEventListener('click', () => handleStarClick(index, pos));
+                    starsContainer.appendChild(star);
+                });
+            }
+
+            function handleStarClick(index, pos) {
+                if (!isGameActive) return;
+
+                if (index === currentStep) {
+                    // Correct star
+                    const starEl = starsContainer.children[index];
+                    starEl.classList.add('active');
+
+                    if (index > 0) {
+                        // Draw line from previous star
+                        const prevPos = starPositions[index - 1];
+                        animateLine(prevPos, pos);
+                    }
+
+                    // Special case: Close the bowl when hitting the last star (7)
+                    // Connect 7 back to 4
+                    if (index === 6) {
+                        const megrezPos = starPositions[3]; // Index 3 is star 4
+                        animateLine(pos, megrezPos);
+                    }
+
+                    currentStep++;
+
+                    if (currentStep === starPositions.length) {
+                        gameWon();
+                    }
+                } else if (index > currentStep) {
+                    // Wrong order
+                    result.textContent = "Follow the numbers in order!";
+                    result.style.color = '#ff6b6b';
+                    setTimeout(() => result.textContent = '', 1500);
+                }
+            }
+
+            function animateLine(start, end) {
+                let progress = 0;
+                const speed = 0.1; // 10% per frame
+
+                function draw() {
+                    progress += speed;
+                    if (progress > 1) progress = 1;
+
+                    const currentX = start.x + (end.x - start.x) * progress;
+                    const currentY = start.y + (end.y - start.y) * progress;
+
+                    ctx.beginPath();
+                    ctx.moveTo(start.x, start.y);
+                    ctx.lineTo(currentX, currentY);
+                    ctx.strokeStyle = '#ffd700';
+                    ctx.lineWidth = 2;
+                    ctx.shadowBlur = 5;
+                    ctx.shadowColor = '#ffd700';
+                    ctx.stroke();
+
+                    if (progress < 1) {
+                        requestAnimationFrame(draw);
+                    }
+                }
+                draw();
+            }
+
+            function gameWon() {
+                isGameActive = false;
+                result.style.color = '#7CFC00';
+                result.textContent = 'Constellation Revealed!';
+                backLink.style.display = 'block';
+
+                // Trigger global animation
+                if (typeof triggerStarExplosion === 'function') {
+                    triggerStarExplosion();
+                }
+            }
 
             function showOverlay() {
                 overlay.classList.remove('hidden');
                 overlay.setAttribute('aria-hidden', 'false');
-                input.value = '';
-                result.textContent = '';
-                retryBtn.classList.add('hidden');
-                submitBtn.classList.remove('hidden');
-                setTimeout(() => input.focus(), 50);
+                initGame();
             }
 
-            function hideOverlay() {
-                overlay.classList.add('hidden');
-                overlay.setAttribute('aria-hidden', 'true');
-            }
-
-            function checkAnswer() {
-                const val = (input.value || '').trim().toLowerCase();
-                if (val === correctAnswer) {
-                    result.style.color = '#7CFC00';
-                    result.textContent = 'Correct 🎉';
-                    submitBtn.classList.add('hidden');
-                    retryBtn.classList.add('hidden');
-                } else {
-                    result.style.color = '#FF6B6B';
-                    result.textContent = 'Wrong — try again';
-                    retryBtn.classList.remove('hidden');
-                }
-            }
-
-            // show the overlay when the video ends
             video.addEventListener('ended', showOverlay);
-
-            // allow pressing Enter in the input to submit
-            input.addEventListener('keydown', (e) => {
-                if (e.key === 'Enter') {
-                    checkAnswer();
-                }
-            });
-
-            submitBtn.addEventListener('click', checkAnswer);
-            retryBtn.addEventListener('click', () => {
-                input.value = '';
-                input.focus();
-                result.textContent = '';
-            });
-
-            // Optional: start playing automatically on supported browsers
             video.autoplay = true;
-            // If autoplay is blocked, user can click play (controls are visible).
         })();
     </script>
+    <style>
+        .star-point {
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            background: #fff;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #333;
+            font-weight: bold;
+            font-size: 12px;
+            cursor: pointer;
+            box-shadow: 0 0 10px #fff;
+            transition: transform 0.2s, background 0.2s;
+        }
+
+        .star-point:hover {
+            transform: scale(1.2);
+        }
+
+        .star-point.active {
+            background: #ffd700;
+            color: #000;
+            box-shadow: 0 0 15px #ffd700;
+        }
+    </style>
+    <script src="../scripts/utils.js"></script>
 </body>
 
 </html>

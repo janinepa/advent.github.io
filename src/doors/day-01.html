@@ -136,6 +136,10 @@
                     result.textContent = 'Correct, you receive the first spark of starlight. See you tomorrow!';
                     submitBtn.classList.add('hidden');
                     retryBtn.classList.add('hidden');
+
+                    if (typeof triggerStarExplosion === 'function') {
+                        triggerStarExplosion();
+                    }
                 } else {
                     result.style.color = '#FF6B6B';
                     result.textContent = 'Wrong — try again';
@@ -165,6 +169,7 @@
             // If autoplay is blocked, user can click play (controls are visible).
         })();
     </script>
+    <script src="../scripts/utils.js"></script>
 </body>
 
 </html>
