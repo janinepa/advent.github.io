@@ -12,7 +12,6 @@ template = """<!DOCTYPE html>
         body {{
             margin: 0;
             height: 100vh;
-            background: url('../assets/images/winter-background.jpg') center/cover no-repeat;
             font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
             color: #fff;
         }}
