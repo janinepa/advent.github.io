@@ -90,6 +90,40 @@
       opacity: 0.7;
     }
 
+    /* Locked animation */
+    @keyframes shake {
+      0% {
+        transform: translateX(0);
+      }
+
+      25% {
+        transform: translateX(-5px);
+      }
+
+      50% {
+        transform: translateX(5px);
+      }
+
+      75% {
+        transform: translateX(-5px);
+      }
+
+      100% {
+        transform: translateX(0);
+      }
+    }
+
+    .door.locked {
+      animation: shake 0.4s ease-in-out;
+      color: #999;
+      /* Grey out locked doors slightly if desired, or keep white */
+    }
+
+    .door.locked-visual {
+      /*opacity: 0.5;*/
+      cursor: not-allowed;
+    }
+
     h1 {
       position: fixed;
       text-align: center;
@@ -136,6 +170,22 @@
       [doorPositions[i], doorPositions[j]] = [doorPositions[j], doorPositions[i]];
     }
 
+    // Helper to check if a door should be open
+    function isDoorOpen(day) {
+      const now = new Date();
+      const currentMonth = now.getMonth(); // 0-indexed (11 is Dec)
+      const currentDay = now.getDate();
+      const currentYear = now.getFullYear();
+
+      // Logic: Allow if it's December of the correct year (or later years) AND day is reached
+      // OR if it's past December (e.g. Jan next year)
+
+      if (currentYear > 2025) return true;
+      if (currentYear === 2025 && currentMonth === 11 && currentDay >= day) return true;
+
+      return false;
+    }
+
     // Create the 24 doors dynamically
     for (let i = 1; i <= 24; i++) {
       const door = document.createElement('div');
@@ -146,11 +196,26 @@
       // Just the number
       door.innerText = i;
 
+      // Visual state for locked doors
+      if (!isDoorOpen(i)) {
+        door.classList.add('locked-visual');
+      }
+
       door.addEventListener('click', () => openDoor(i, door));
       village.appendChild(door);
     }
 
     function openDoor(day, doorEl) {
+      if (!isDoorOpen(day)) {
+        // Locked behavior
+        doorEl.classList.add('locked'); // Triggers shake animation
+        setTimeout(() => {
+          doorEl.classList.remove('locked');
+        }, 400);
+        return;
+      }
+
+      // Open behavior
       doorEl.classList.add('open');
       setTimeout(() => {
         const dayStr = day < 10 ? `0${day}` : day;
