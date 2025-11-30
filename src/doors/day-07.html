@@ -1,8 +1,9 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Advent Calendar - Day 7</title>
     <link rel="stylesheet" href="../styles/main.css">
     <style>
@@ -35,11 +36,12 @@
             align-items: center;
             justify-content: center;
             z-index: 2;
-            pointer-events: none; /* disabled until shown */
+            pointer-events: none;
+            /* disabled until shown */
         }
 
         .answer-card {
-            background: rgba(0,0,0,0.6);
+            background: rgba(0, 0, 0, 0.6);
             padding: 24px;
             border-radius: 12px;
             backdrop-filter: blur(4px);
@@ -52,8 +54,8 @@
             width: 100%;
             padding: 10px;
             border-radius: 8px;
-            border: 1px solid rgba(255,255,255,0.2);
-            background: rgba(255,255,255,0.06);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            background: rgba(255, 255, 255, 0.06);
             color: #fff;
             margin-top: 12px;
             box-sizing: border-box;
@@ -69,9 +71,12 @@
             cursor: pointer;
         }
 
-        .hidden { display: none; }
+        .hidden {
+            display: none;
+        }
     </style>
 </head>
+
 <body>
     <!-- main door container (video fills viewport) -->
     <div class="door" aria-hidden="false">
@@ -93,7 +98,7 @@
                 <button id="retryBtn" class="hidden">Try again</button>
             </div>
             <div id="result" style="margin-top:12px;font-weight:600"></div>
-            <a href="../index.html" style="display:block;margin-top:10px;color:#fff;opacity:0.9">Back to Menu</a>
+            <a href="../index.html" style="display:block;margin-top:10px;color:#fff;opacity:0.9">Back to the village</a>
         </div>
     </div>
 
@@ -159,4 +164,5 @@
         })();
     </script>
 </body>
+
 </html>
