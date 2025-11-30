@@ -78,7 +78,7 @@ template = """<!DOCTYPE html>
     <!-- main door container (video fills viewport) -->
     <div class="door" aria-hidden="false">
         <h1 style="position:fixed;left:16px;top:16px;z-index:3;margin:0;font-size:18px">Day {day_num}</h1>
-        <video id="dayVideo" controls playsinline>
+        <video id="dayVideo" controls playsinline preload="auto">
             <!-- .mov commonly uses video/quicktime -->
             <source src="../assets/videos/day-{day_str}.mp4" type="video/mp4">
             Your browser does not support the video tag.
