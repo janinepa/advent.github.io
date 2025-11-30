@@ -28,50 +28,197 @@
         }
 
         /* overlay that appears after video ends */
-        .answer-overlay {
+        .game-overlay {
             position: fixed;
             inset: 0;
             display: flex;
             align-items: center;
             justify-content: center;
             z-index: 2;
+            background: rgba(0, 0, 0, 0.85);
+            backdrop-filter: blur(5px);
+            opacity: 0;
             pointer-events: none;
-            /* disabled until shown */
+            transition: opacity 0.5s ease;
         }
 
-        .answer-card {
-            background: rgba(0, 0, 0, 0.6);
-            padding: 24px;
-            border-radius: 12px;
-            backdrop-filter: blur(4px);
-            text-align: center;
-            min-width: 280px;
+        .game-overlay.show {
+            opacity: 1;
             pointer-events: auto;
         }
 
-        .answer-card input[type="text"] {
-            width: 100%;
-            padding: 10px;
-            border-radius: 8px;
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            background: rgba(255, 255, 255, 0.06);
-            color: #fff;
-            margin-top: 12px;
-            box-sizing: border-box;
+        .game-card {
+            background: rgba(20, 20, 20, 0.9);
+            padding: 30px;
+            border-radius: 16px;
+            border: 1px solid rgba(255, 215, 0, 0.3);
+            text-align: center;
+            max-width: 90vw;
+            box-shadow: 0 0 30px rgba(0, 0, 0, 0.8);
         }
 
-        .answer-card button {
-            margin-top: 12px;
-            padding: 8px 14px;
-            border-radius: 8px;
-            border: none;
-            background: #ff7a18;
-            color: #fff;
+        h2 {
+            color: #ffd700;
+            margin-top: 0;
+            text-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
+        }
+
+        .riddle {
+            font-size: 1.2rem;
+            font-style: italic;
+            margin-bottom: 30px;
+            color: #ddd;
+            line-height: 1.5;
+        }
+
+        .candle-container {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            margin-bottom: 30px;
+            min-height: 150px;
+            align-items: flex-end;
+        }
+
+        .candle {
+            width: 40px;
+            height: 100px;
+            background: linear-gradient(to right, #e0e0e0, #fff, #e0e0e0);
+            border-radius: 4px;
+            position: relative;
             cursor: pointer;
+            transition: transform 0.2s;
+            box-shadow: inset 0 -10px 10px rgba(0, 0, 0, 0.1);
         }
 
-        .hidden {
-            display: none;
+        .candle:hover {
+            transform: scale(1.05);
+        }
+
+        .candle::before {
+            content: '';
+            position: absolute;
+            top: -15px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 4px;
+            height: 15px;
+            background: #333;
+            /* wick */
+        }
+
+        /* Candle Colors */
+        .candle[data-color="blue"] {
+            background: linear-gradient(to right, #4a90e2, #5ca0f2, #4a90e2);
+        }
+
+        .candle[data-color="black"] {
+            background: linear-gradient(to right, #2c3e50, #4a4a4a, #2c3e50);
+        }
+
+        .candle[data-color="green"] {
+            background: linear-gradient(to right, #2ecc71, #40d47e, #2ecc71);
+        }
+
+        .candle[data-color="yellow"] {
+            background: linear-gradient(to right, #f1c40f, #f39c12, #f1c40f);
+        }
+
+        /* Flame */
+        .flame {
+            position: absolute;
+            top: -35px;
+            left: 50%;
+            transform: translateX(-50%) scale(0);
+            width: 20px;
+            height: 30px;
+            background: radial-gradient(ellipse at bottom, #ffff00 0%, #ffad33 60%, #ff3300 100%);
+            border-radius: 50% 50% 20% 20%;
+            filter: blur(1px);
+            opacity: 0;
+            transition: all 0.3s ease;
+            box-shadow: 0 0 10px #ffad33, 0 0 20px #ffad33;
+        }
+
+        .candle.lit .flame {
+            transform: translateX(-50%) scale(1);
+            opacity: 1;
+            animation: flicker 0.1s infinite alternate;
+        }
+
+        @keyframes flicker {
+            0% {
+                transform: translateX(-50%) scale(1) skewX(-2deg);
+                opacity: 0.9;
+            }
+
+            100% {
+                transform: translateX(-50%) scale(1.05) skewX(2deg);
+                opacity: 1;
+            }
+        }
+
+        /* Floating Animation */
+        .candle {
+            animation: float 3s ease-in-out infinite;
+        }
+
+        .candle:nth-child(1) {
+            animation-delay: 0s;
+        }
+
+        .candle:nth-child(2) {
+            animation-delay: 0.5s;
+        }
+
+        .candle:nth-child(3) {
+            animation-delay: 1s;
+        }
+
+        .candle:nth-child(4) {
+            animation-delay: 1.5s;
+        }
+
+        @keyframes float {
+
+            0%,
+            100% {
+                transform: translateY(0);
+            }
+
+            50% {
+                transform: translateY(-10px);
+            }
+        }
+
+        /* Stop floating when hovering to make clicking easier */
+        .candle:hover {
+            animation-play-state: paused;
+        }
+
+        #message {
+            min-height: 24px;
+            font-weight: bold;
+            margin-top: 10px;
+        }
+
+        .btn {
+            display: inline-block;
+            margin-top: 20px;
+            padding: 10px 20px;
+            background: #b89b5e;
+            color: #000;
+            text-decoration: none;
+            border-radius: 6px;
+            font-weight: bold;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s;
+        }
+
+        .btn.show {
+            opacity: 1;
+            pointer-events: auto;
         }
     </style>
 </head>
@@ -87,79 +234,116 @@
         </video>
     </div>
 
-    <!-- overlay that shows input after video ends -->
-    <div id="answerOverlay" class="answer-overlay hidden" role="dialog" aria-modal="true" aria-hidden="true">
-        <div class="answer-card">
-            <div id="prompt">Riddle: Placeholder riddle for Day 19?</div>
-            <input id="answerInput" type="text" placeholder="Type your answer..." aria-label="Answer input" />
-            <div>
-                <button id="submitBtn">Submit</button>
-                <button id="retryBtn" class="hidden">Try again</button>
+    <!-- Game Overlay -->
+    <div id="gameOverlay" class="game-overlay">
+        <div class="game-card">
+            <h2>The Chamber of Floating Flames</h2>
+            <p class="riddle">"First the ice, then the night,<br>Then the forest, then the light."</p>
+
+            <div class="candle-container">
+                <div class="candle" data-color="blue" title="Ice">
+                    <div class="flame"></div>
+                </div>
+                <div class="candle" data-color="black" title="Night">
+                    <div class="flame"></div>
+                </div>
+                <div class="candle" data-color="green" title="Forest">
+                    <div class="flame"></div>
+                </div>
+                <div class="candle" data-color="yellow" title="Light">
+                    <div class="flame"></div>
+                </div>
             </div>
-            <div id="result" style="margin-top:12px;font-weight:600"></div>
-            <a href="../index.html" style="display:block;margin-top:10px;color:#fff;opacity:0.9">Back to the village</a>
+
+            <div id="message"></div>
+            <a href="../index.html" id="backBtn" class="btn">Back to the village</a>
         </div>
     </div>
 
     <script>
         (function () {
-            const correctAnswer = 'placeholder'; // expected answer (case-insensitive)
             const video = document.getElementById('dayVideo');
-            const overlay = document.getElementById('answerOverlay');
-            const input = document.getElementById('answerInput');
-            const submitBtn = document.getElementById('submitBtn');
-            const retryBtn = document.getElementById('retryBtn');
-            const result = document.getElementById('result');
+            const overlay = document.getElementById('gameOverlay');
+            const candles = document.querySelectorAll('.candle');
+            const message = document.getElementById('message');
+            const backBtn = document.getElementById('backBtn');
 
-            function showOverlay() {
-                overlay.classList.remove('hidden');
-                overlay.setAttribute('aria-hidden', 'false');
-                input.value = '';
-                result.textContent = '';
-                retryBtn.classList.add('hidden');
-                submitBtn.classList.remove('hidden');
-                setTimeout(() => input.focus(), 50);
+            // Riddle: Ice (Blue) -> Night (Black) -> Forest (Green) -> Light (Yellow)
+            const correctSequence = ['blue', 'black', 'green', 'yellow'];
+            let currentSequence = [];
+            let isResetting = false;
+
+            function initGame() {
+                overlay.classList.add('show');
+
+                // Shuffle candles visually for extra challenge? 
+                // Let's keep them in order for now, or shuffle if requested.
+                // The user said "Four candles float... Click them in correct order".
+                // Randomizing position makes it a bit more of a puzzle.
+                const container = document.querySelector('.candle-container');
+                for (let i = container.children.length; i >= 0; i--) {
+                    container.appendChild(container.children[Math.random() * i | 0]);
+                }
             }
 
-            function hideOverlay() {
-                overlay.classList.add('hidden');
-                overlay.setAttribute('aria-hidden', 'true');
-            }
+            candles.forEach(candle => {
+                candle.addEventListener('click', () => {
+                    if (isResetting) return;
+                    if (candle.classList.contains('lit')) return; // Already lit
 
-            function checkAnswer() {
-                const val = (input.value || '').trim().toLowerCase();
-                if (val === correctAnswer) {
-                    result.style.color = '#7CFC00';
-                    result.textContent = 'Correct 🎉';
-                    triggerStarExplosion(); // Trigger animation
-                    submitBtn.classList.add('hidden');
-                    retryBtn.classList.add('hidden');
+                    // Light it up
+                    candle.classList.add('lit');
+                    const color = candle.dataset.color;
+                    currentSequence.push(color);
+
+                    checkSequence();
+                });
+            });
+
+            function checkSequence() {
+                // Check if the sequence so far matches the correct sequence
+                const index = currentSequence.length - 1;
+
+                if (currentSequence[index] !== correctSequence[index]) {
+                    // Wrong candle!
+                    message.style.color = '#FF6B6B';
+                    message.textContent = "The flames flicker and die...";
+                    isResetting = true;
+
+                    setTimeout(() => {
+                        resetCandles();
+                    }, 1000);
                 } else {
-                    result.style.color = '#FF6B6B';
-                    result.textContent = 'Wrong — try again';
-                    retryBtn.classList.remove('hidden');
+                    // Correct so far
+                    if (currentSequence.length === correctSequence.length) {
+                        // Win!
+                        gameWon();
+                    }
                 }
             }
 
-            // show the overlay when the video ends
-            video.addEventListener('ended', showOverlay);
+            function resetCandles() {
+                candles.forEach(c => c.classList.remove('lit'));
+                currentSequence = [];
+                message.textContent = "";
+                isResetting = false;
+            }
 
-            // allow pressing Enter in the input to submit
-            input.addEventListener('keydown', (e) => {
-                if (e.key === 'Enter') {
-                    checkAnswer();
+            function gameWon() {
+                message.style.color = '#7CFC00';
+                message.textContent = "The magic is restored! You received a spark of starlight.";
+                backBtn.classList.add('show');
+
+                if (typeof triggerStarExplosion === 'function') {
+                    triggerStarExplosion();
                 }
+            }
+
+            // Show overlay when video ends
+            video.addEventListener('ended', () => {
+                initGame();
             });
 
-            submitBtn.addEventListener('click', checkAnswer);
-            retryBtn.addEventListener('click', () => {
-                input.value = '';
-                input.focus();
-                result.textContent = '';
-            });
-
-            // Optional: start playing automatically on supported browsers
-            // If autoplay is blocked, user can click play (controls are visible).
         })();
     </script>
     <script src="../scripts/utils.js"></script>
