@@ -105,7 +105,7 @@
 
     <script>
         (function () {
-            const correctAnswer = 'fire'; // expected answer (case-insensitive)
+            const correctAnswers = ['fire', 'candle']; // expected answers (case-insensitive)
             const video = document.getElementById('dayVideo');
             const overlay = document.getElementById('answerOverlay');
             const input = document.getElementById('answerInput');
@@ -130,7 +130,7 @@
 
             function checkAnswer() {
                 const val = (input.value || '').trim().toLowerCase();
-                if (val === correctAnswer) {
+                if (correctAnswers.includes(val)) {
                     result.style.color = '#7CFC00';
                     result.textContent = 'Correct, you receive the first spark of starlight. See you tomorrow!';
                     submitBtn.classList.add('hidden');
