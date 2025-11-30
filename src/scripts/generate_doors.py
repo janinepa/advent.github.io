@@ -156,7 +156,6 @@ template = """<!DOCTYPE html>
             }});
 
             // Optional: start playing automatically on supported browsers
-            video.autoplay = true;
             // If autoplay is blocked, user can click play (controls are visible).
         }})();
     </script>
