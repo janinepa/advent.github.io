@@ -28,50 +28,232 @@
         }
 
         /* overlay that appears after video ends */
-        .answer-overlay {
+        .game-overlay {
             position: fixed;
             inset: 0;
             display: flex;
             align-items: center;
             justify-content: center;
             z-index: 2;
+            background: rgba(0, 0, 0, 0.85);
+            backdrop-filter: blur(5px);
+            opacity: 0;
             pointer-events: none;
-            /* disabled until shown */
+            transition: opacity 0.5s ease;
         }
 
-        .answer-card {
-            background: rgba(0, 0, 0, 0.6);
-            padding: 24px;
-            border-radius: 12px;
-            backdrop-filter: blur(4px);
-            text-align: center;
-            min-width: 280px;
+        .game-overlay.show {
+            opacity: 1;
             pointer-events: auto;
         }
 
-        .answer-card input[type="text"] {
-            width: 100%;
-            padding: 10px;
-            border-radius: 8px;
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            background: rgba(255, 255, 255, 0.06);
-            color: #fff;
-            margin-top: 12px;
-            box-sizing: border-box;
+        .game-card {
+            background: rgba(20, 20, 20, 0.95);
+            padding: 20px;
+            border-radius: 16px;
+            border: 1px solid rgba(255, 105, 180, 0.3);
+            text-align: center;
+            max-width: 900px;
+            width: 90vw;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: 0 0 30px rgba(0, 0, 0, 0.8);
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
         }
 
-        .answer-card button {
-            margin-top: 12px;
-            padding: 8px 14px;
-            border-radius: 8px;
-            border: none;
-            background: #ff7a18;
-            color: #fff;
-            cursor: pointer;
+        h2 {
+            color: #FF69B4;
+            margin: 0;
+            text-shadow: 0 0 10px rgba(255, 105, 180, 0.5);
         }
 
-        .hidden {
-            display: none;
+        .instruction {
+            font-size: 1rem;
+            color: #ddd;
+            margin: 0;
+        }
+
+        .clues-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            text-align: left;
+            background: rgba(255, 255, 255, 0.05);
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 10px;
+        }
+
+        .clue {
+            font-style: italic;
+            color: #aaa;
+            font-size: 0.9rem;
+        }
+
+        .clue::before {
+            content: "💡 ";
+        }
+
+        .puzzle-container {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .elves-container {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+
+        .elf-zone {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+            width: 150px;
+        }
+
+        .elf-image {
+            width: 100px;
+            height: 120px;
+            background-size: contain;
+            background-repeat: no-repeat;
+            background-position: center;
+            filter: drop-shadow(0 0 10px rgba(255, 255, 255, 0.2));
+        }
+
+        /* Placeholder styles until images are generated */
+        .elf-image.zippy {
+            background-image: url('../assets/images/elf_zippy.png');
+        }
+
+        .elf-image.glitter {
+            background-image: url('../assets/images/elf_glitter.png');
+        }
+
+        .elf-image.sparkle {
+            background-image: url('../assets/images/elf_sparkle.png');
+        }
+
+        /* Fallback if images missing */
+        .elf-image.zippy:empty,
+        .elf-image.sparkle:empty,
+        .elf-image.glitter:empty {
+            background-color: #333;
+            border-radius: 50%;
+        }
+
+        .elf-label {
+            font-weight: bold;
+            color: #fff;
+        }
+
+        .drop-zone {
+            width: 120px;
+            height: 60px;
+            border: 2px dashed rgba(255, 255, 255, 0.3);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+            background: rgba(0, 0, 0, 0.3);
+        }
+
+        .drop-zone:hover {
+            border-color: #FF69B4;
+            background: rgba(255, 105, 180, 0.1);
+        }
+
+        .ribbons-pool {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 15px;
+            border-radius: 12px;
+        }
+
+        .ribbons-container {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            min-height: 60px;
+        }
+
+        .ribbon-item {
+            width: 100px;
+            height: 50px;
+            border-radius: 25px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: grab;
+            font-weight: bold;
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+            transition: transform 0.2s;
+            user-select: none;
+        }
+
+        .ribbon-item:active {
+            cursor: grabbing;
+            transform: scale(0.95);
+        }
+
+        .ribbon-item.red {
+            background: linear-gradient(45deg, #ff4444, #cc0000);
+        }
+
+        .ribbon-item.blue {
+            background: linear-gradient(45deg, #4444ff, #0000cc);
+        }
+
+        .ribbon-item.green {
+            background: linear-gradient(45deg, #44ff44, #00cc00);
+            color: #004400;
+        }
+
+        .ribbon-item.gold {
+            background: linear-gradient(45deg, #ffd700, #daa520);
+            color: #443300;
+        }
+
+        .ribbon-item.silver {
+            background: linear-gradient(45deg, #c0c0c0, #a9a9a9);
+            color: #333;
+        }
+
+        .placeholder {
+            font-size: 0.8rem;
+            color: #666;
+        }
+
+        #message {
+            min-height: 24px;
+            font-weight: bold;
+            margin-top: 10px;
+            line-height: 1.4;
+        }
+
+        .btn {
+            display: inline-block;
+            margin-top: 10px;
+            padding: 10px 20px;
+            background: #FF69B4;
+            color: #fff;
+            text-decoration: none;
+            border-radius: 6px;
+            font-weight: bold;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s;
+        }
+
+        .btn.show {
+            opacity: 1;
+            pointer-events: auto;
         }
     </style>
 </head>
@@ -87,79 +269,157 @@
         </video>
     </div>
 
-    <!-- overlay that shows input after video ends -->
-    <div id="answerOverlay" class="answer-overlay hidden" role="dialog" aria-modal="true" aria-hidden="true">
-        <div class="answer-card">
-            <div id="prompt">Riddle: Placeholder riddle for Day 9?</div>
-            <input id="answerInput" type="text" placeholder="Type your answer..." aria-label="Answer input" />
-            <div>
-                <button id="submitBtn">Submit</button>
-                <button id="retryBtn" class="hidden">Try again</button>
+    <!-- Game Overlay -->
+    <div id="gameOverlay" class="game-overlay">
+        <div class="game-card">
+            <h2>The elves panic - the ribbons for wrapping gifts are all mixed up!</h2>
+            <p class="instruction">Which ribbon belongs to who? Drag the correct ribbon to each elf based on the clues.
+                Which ribbon is left over?
+            </p>
+
+            <div class="clues-container">
+                <div class="clue">"Sparkle does not use Green or Blue."</div>
+                <div class="clue">"Glitter's ribbon is a primary color, but not Blue."</div>
+                <div class="clue">"The Green ribbon belongs to the first elf."</div>
+                <div class="clue">"The Gold ribbon is used by someone."</div>
             </div>
-            <div id="result" style="margin-top:12px;font-weight:600"></div>
-            <a href="../index.html" style="display:block;margin-top:10px;color:#fff;opacity:0.9">Back to the village</a>
+
+            <div class="puzzle-container">
+                <div class="elves-container" id="elvesContainer">
+                    <!-- Elves generated by JS -->
+                </div>
+
+                <div class="ribbons-pool">
+                    <p>Available Ribbons:</p>
+                    <div class="ribbons-container" id="ribbonsContainer">
+                        <!-- Ribbons generated by JS -->
+                    </div>
+                </div>
+            </div>
+
+            <div id="message"></div>
+            <a href="../index.html" id="backBtn" class="btn">Back to the village</a>
         </div>
     </div>
 
     <script>
         (function () {
-            const correctAnswer = 'placeholder'; // expected answer (case-insensitive)
             const video = document.getElementById('dayVideo');
-            const overlay = document.getElementById('answerOverlay');
-            const input = document.getElementById('answerInput');
-            const submitBtn = document.getElementById('submitBtn');
-            const retryBtn = document.getElementById('retryBtn');
-            const result = document.getElementById('result');
+            const overlay = document.getElementById('gameOverlay');
+            const message = document.getElementById('message');
+            const backBtn = document.getElementById('backBtn');
+            const elvesContainer = document.getElementById('elvesContainer');
+            const ribbonsContainer = document.getElementById('ribbonsContainer');
 
-            function showOverlay() {
-                overlay.classList.remove('hidden');
-                overlay.setAttribute('aria-hidden', 'false');
-                input.value = '';
-                result.textContent = '';
-                retryBtn.classList.add('hidden');
-                submitBtn.classList.remove('hidden');
-                setTimeout(() => input.focus(), 50);
+            // Game State
+            const state = {
+                elves: [
+                    { id: 'zippy', name: 'Zippy', correctRibbon: 'green', currentRibbon: null },
+                    { id: 'sparkle', name: 'Sparkle', correctRibbon: 'gold', currentRibbon: null },
+                    { id: 'glitter', name: 'Glitter', correctRibbon: 'red', currentRibbon: null }
+                ],
+                ribbons: ['red', 'blue', 'green', 'gold'],
+                isSolved: false
+            };
+
+            function initGame() {
+                overlay.classList.add('show');
+                renderGame();
             }
 
-            function hideOverlay() {
-                overlay.classList.add('hidden');
-                overlay.setAttribute('aria-hidden', 'true');
+            function renderGame() {
+                // Render Elves (Drop Zones)
+                elvesContainer.innerHTML = state.elves.map(elf => `
+                    <div class="elf-zone" data-id="${elf.id}">
+                        <div class="elf-image ${elf.id}"></div>
+                        <div class="elf-label">${elf.name}</div>
+                        <div class="drop-zone" ondragover="allowDrop(event)" ondrop="drop(event, '${elf.id}')">
+                            ${elf.currentRibbon ? renderRibbon(elf.currentRibbon, true) : '<span class="placeholder">Drop Ribbon Here</span>'}
+                        </div>
+                    </div>
+                `).join('');
+
+                // Render Ribbons (Draggables) - Only those not assigned
+                const assignedRibbons = state.elves.map(e => e.currentRibbon).filter(r => r);
+                const availableRibbons = state.ribbons.filter(r => !assignedRibbons.includes(r));
+
+                ribbonsContainer.innerHTML = availableRibbons.map(ribbon => renderRibbon(ribbon, false)).join('');
             }
 
-            function checkAnswer() {
-                const val = (input.value || '').trim().toLowerCase();
-                if (val === correctAnswer) {
-                    result.style.color = '#7CFC00';
-                    result.textContent = 'Correct 🎉';
-                    triggerStarExplosion(); // Trigger animation
-                    submitBtn.classList.add('hidden');
-                    retryBtn.classList.add('hidden');
-                } else {
-                    result.style.color = '#FF6B6B';
-                    result.textContent = 'Wrong — try again';
-                    retryBtn.classList.remove('hidden');
+            function renderRibbon(color, isAssigned) {
+                return `
+                    <div class="ribbon-item ${color}" 
+                         draggable="true" 
+                         ondragstart="drag(event, '${color}')"
+                         ${isAssigned ? `onclick="removeRibbon('${color}')"` : ''}>
+                        <div class="ribbon-icon"></div>
+                        <span class="ribbon-name">${color.charAt(0).toUpperCase() + color.slice(1)}</span>
+                    </div>
+                `;
+            }
+
+            window.allowDrop = function (ev) {
+                ev.preventDefault();
+            }
+
+            window.drag = function (ev, color) {
+                ev.dataTransfer.setData("text", color);
+            }
+
+            window.drop = function (ev, elfId) {
+                ev.preventDefault();
+                const color = ev.dataTransfer.getData("text");
+
+                // If elf already has a ribbon, return it to pool (or swap? let's just replace)
+                const elf = state.elves.find(e => e.id === elfId);
+                elf.currentRibbon = color;
+
+                // If this ribbon was elsewhere, remove it from there
+                state.elves.forEach(e => {
+                    if (e.id !== elfId && e.currentRibbon === color) {
+                        e.currentRibbon = null;
+                    }
+                });
+
+                renderGame();
+                checkWin();
+            }
+
+            window.removeRibbon = function (color) {
+                const elf = state.elves.find(e => e.currentRibbon === color);
+                if (elf) {
+                    elf.currentRibbon = null;
+                    renderGame();
                 }
             }
 
-            // show the overlay when the video ends
-            video.addEventListener('ended', showOverlay);
+            function checkWin() {
+                const isCorrect = state.elves.every(elf => elf.currentRibbon === elf.correctRibbon);
 
-            // allow pressing Enter in the input to submit
-            input.addEventListener('keydown', (e) => {
-                if (e.key === 'Enter') {
-                    checkAnswer();
+                if (isCorrect) {
+                    state.isSolved = true;
+                    message.style.color = '#7CFC00';
+                    message.innerHTML = "Correct, now the elves can wrap their gifts!";
+                    backBtn.classList.add('show');
+
+                    // Trigger confetti or something
+                    if (typeof triggerStarExplosion === 'function') {
+                        triggerStarExplosion();
+                    }
+
+                    // Disable interactions
+                    document.querySelectorAll('.ribbon-item').forEach(el => el.draggable = false);
+                    document.querySelectorAll('.drop-zone').forEach(el => el.removeAttribute('ondrop'));
                 }
+            }
+
+            video.addEventListener('ended', () => {
+                initGame();
             });
 
-            submitBtn.addEventListener('click', checkAnswer);
-            retryBtn.addEventListener('click', () => {
-                input.value = '';
-                input.focus();
-                result.textContent = '';
-            });
+            // For testing, uncomment to skip video
+            // setTimeout(initGame, 1000);
 
-            // Optional: start playing automatically on supported browsers
-            // If autoplay is blocked, user can click play (controls are visible).
         })();
     </script>
     <script src="../scripts/utils.js"></script>

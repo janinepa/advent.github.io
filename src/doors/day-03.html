@@ -28,50 +28,125 @@
         }
 
         /* overlay that appears after video ends */
-        .answer-overlay {
+        .game-overlay {
             position: fixed;
             inset: 0;
             display: flex;
             align-items: center;
             justify-content: center;
             z-index: 2;
+            background: rgba(0, 0, 0, 0.85);
+            backdrop-filter: blur(5px);
+            opacity: 0;
             pointer-events: none;
-            /* disabled until shown */
+            transition: opacity 0.5s ease;
         }
 
-        .answer-card {
-            background: rgba(0, 0, 0, 0.6);
-            padding: 24px;
-            border-radius: 12px;
-            backdrop-filter: blur(4px);
-            text-align: center;
-            min-width: 280px;
+        .game-overlay.show {
+            opacity: 1;
             pointer-events: auto;
         }
 
-        .answer-card input[type="text"] {
-            width: 100%;
-            padding: 10px;
-            border-radius: 8px;
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            background: rgba(255, 255, 255, 0.06);
-            color: #fff;
-            margin-top: 12px;
-            box-sizing: border-box;
+        .game-card {
+            background: rgba(20, 20, 20, 0.9);
+            padding: 30px;
+            border-radius: 16px;
+            border: 1px solid rgba(135, 206, 250, 0.3);
+            text-align: center;
+            max-width: 90vw;
+            box-shadow: 0 0 30px rgba(0, 0, 0, 0.8);
         }
 
-        .answer-card button {
-            margin-top: 12px;
-            padding: 8px 14px;
-            border-radius: 8px;
-            border: none;
-            background: #ff7a18;
-            color: #fff;
+        h2 {
+            color: #87CEFA;
+            margin-top: 0;
+            text-shadow: 0 0 10px rgba(135, 206, 250, 0.5);
+        }
+
+        .instruction {
+            font-size: 1.1rem;
+            color: #ddd;
+            margin-bottom: 20px;
+        }
+
+        .word-container {
+            display: flex;
+            justify-content: center;
+            gap: 8px;
+            margin-bottom: 30px;
+            min-height: 60px;
+            flex-wrap: wrap;
+        }
+
+        .slot {
+            width: 40px;
+            height: 50px;
+            border-bottom: 2px solid rgba(255, 255, 255, 0.3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 5px;
+        }
+
+        .letter-card {
+            width: 40px;
+            height: 50px;
+            background: linear-gradient(to bottom, #e0f7fa, #b3e5fc);
+            color: #0277bd;
+            border-radius: 4px 4px 12px 12px;
+            /* Icicle shape-ish */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            font-weight: bold;
             cursor: pointer;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+            border: 1px solid #fff;
+            user-select: none;
+            transition: transform 0.2s;
         }
 
-        .hidden {
-            display: none;
+        .letter-card:hover {
+            transform: translateY(-3px);
+        }
+
+
+
+        .source-area {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            flex-wrap: wrap;
+            min-height: 60px;
+            padding: 10px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 8px;
+        }
+
+        #message {
+            min-height: 24px;
+            font-weight: bold;
+            margin-top: 20px;
+        }
+
+        .btn {
+            display: inline-block;
+            margin-top: 20px;
+            padding: 10px 20px;
+            background: #87CEFA;
+            color: #000;
+            text-decoration: none;
+            border-radius: 6px;
+            font-weight: bold;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s;
+        }
+
+        .btn.show {
+            opacity: 1;
+            pointer-events: auto;
         }
     </style>
 </head>
@@ -80,55 +155,132 @@
     <!-- main door container (video fills viewport) -->
     <div class="door" aria-hidden="false">
         <h1 style="position:fixed;left:16px;top:16px;z-index:3;margin:0;font-size:18px">Day 3</h1>
-        <video id="dayVideo" controls playsinline preload="metadata" poster="../assets/images/posters/day-03.jpg">
+        <video id="dayVideo" controls playsinline preload="metadata" poster="../assets/images/posters/day-07.jpg">
             <!-- .mov commonly uses video/quicktime -->
-            <source src="../assets/videos/day-03.mp4" type="video/mp4">
+            <source src="../assets/videos/day-07.mp4" type="video/mp4">
             Your browser does not support the video tag.
         </video>
     </div>
 
-    <!-- overlay that shows task after video ends -->
-    <div id="answerOverlay" class="answer-overlay hidden" role="dialog" aria-modal="true" aria-hidden="true">
-        <div class="answer-card">
-            <h2 style="color:#ffd700;margin-top:0">Today's Task</h2>
-            <div id="prompt" style="font-size:1.2em;margin:20px 0">Make someone smile today!</div>
-            <div>
-                <button id="submitBtn">I will!</button>
+    <!-- Game Overlay -->
+    <div id="gameOverlay" class="game-overlay">
+        <div class="game-card">
+            <h2>Scrambled Words in the Library</h2>
+            <p class="instruction">The words in the library are all mixed up! I need your help to bring order to the
+                chaos.<br>Click the letters to form a word.</p>
+
+            <!-- Target Slots -->
+            <div class="word-container" id="targetSlots">
+                <!-- Slots generated by JS -->
             </div>
-            <div id="result" style="margin-top:12px;font-weight:600"></div>
-            <a href="../index.html" id="backLink" style="display:none;margin-top:10px;color:#fff;opacity:0.9">Back to
-                the village</a>
+
+            <!-- Source Letters -->
+            <div class="source-area" id="sourceArea">
+                <!-- Letters generated by JS -->
+            </div>
+
+            <div id="message"></div>
+            <a href="../index.html" id="backBtn" class="btn">Back to the village</a>
         </div>
     </div>
 
     <script>
         (function () {
             const video = document.getElementById('dayVideo');
-            const overlay = document.getElementById('answerOverlay');
-            const submitBtn = document.getElementById('submitBtn');
-            const result = document.getElementById('result');
-            const backLink = document.getElementById('backLink');
+            const overlay = document.getElementById('gameOverlay');
+            const targetSlots = document.getElementById('targetSlots');
+            const sourceArea = document.getElementById('sourceArea');
+            const message = document.getElementById('message');
+            const backBtn = document.getElementById('backBtn');
 
-            function showOverlay() {
-                overlay.classList.remove('hidden');
-                overlay.setAttribute('aria-hidden', 'false');
+            const targetWord = "STARLIGHT";
+            let currentLetters = [];
+
+            function initGame() {
+                overlay.classList.add('show');
+                targetSlots.innerHTML = '';
+                sourceArea.innerHTML = '';
+                message.textContent = '';
+
+                // Create slots
+                for (let i = 0; i < targetWord.length; i++) {
+                    const slot = document.createElement('div');
+                    slot.classList.add('slot');
+                    slot.dataset.index = i;
+                    // Allow clicking a slot to return the letter to source? 
+                    // For simplicity, let's make clicking a placed letter return it.
+                    targetSlots.appendChild(slot);
+                }
+
+                // Create scrambled letters
+                const letters = targetWord.split('').sort(() => Math.random() - 0.5);
+
+                letters.forEach((char, index) => {
+                    createLetterCard(char);
+                });
             }
 
-            function completeTask() {
-                result.style.color = '#7CFC00';
-                result.textContent = 'Have a wonderful day!';
-                submitBtn.classList.add('hidden');
-                backLink.style.display = 'block';
+            function createLetterCard(char) {
+                const card = document.createElement('div');
+                card.classList.add('letter-card');
+                card.textContent = char;
+                card.dataset.char = char;
+
+                card.addEventListener('click', () => handleLetterClick(card));
+                sourceArea.appendChild(card);
             }
 
-            // show the overlay when the video ends
-            video.addEventListener('ended', showOverlay);
+            function handleLetterClick(card) {
+                if (backBtn.classList.contains('show')) return; // Game won
 
-            submitBtn.addEventListener('click', completeTask);
+                if (card.parentElement === sourceArea) {
+                    // Move to first empty slot
+                    const emptySlot = Array.from(targetSlots.children).find(slot => slot.children.length === 0);
+                    if (emptySlot) {
+                        emptySlot.appendChild(card);
+                        checkWin();
+                    }
+                } else {
+                    // Return to source
+                    sourceArea.appendChild(card);
+                    message.textContent = ''; // Clear any "wrong" message
+                }
+            }
 
-            // Optional: start playing automatically on supported browsers
+            function checkWin() {
+                const slots = Array.from(targetSlots.children);
+                // Check if all slots are filled
+                if (slots.some(slot => slot.children.length === 0)) return;
+
+                // Check word
+                const formedWord = slots.map(slot => slot.children[0].textContent).join('');
+
+                if (formedWord === targetWord) {
+                    gameWon();
+                } else {
+                    message.style.color = '#FF6B6B';
+                    message.textContent = "Not quite right... try again.";
+                }
+            }
+
+            function gameWon() {
+                message.style.color = '#7CFC00';
+                message.textContent = "Thank you! You found the magic word.";
+                backBtn.classList.add('show');
+
+                if (typeof triggerStarExplosion === 'function') {
+                    triggerStarExplosion();
+                }
+            }
+
+            // Show overlay when video ends
+            video.addEventListener('ended', () => {
+                initGame();
+            });
+
         })();
     </script>
+    <script src="../scripts/utils.js"></script>
 </body>
 
 </html>
