@@ -28,50 +28,158 @@
         }
 
         /* overlay that appears after video ends */
-        .answer-overlay {
+        .game-overlay {
             position: fixed;
             inset: 0;
             display: flex;
             align-items: center;
             justify-content: center;
             z-index: 2;
+            background: rgba(0, 0, 0, 0.85);
+            backdrop-filter: blur(5px);
+            opacity: 1;
+            transition: opacity 0.5s ease;
+        }
+
+        .game-overlay.hidden {
+            opacity: 0;
             pointer-events: none;
-            /* disabled until shown */
         }
 
-        .answer-card {
-            background: rgba(0, 0, 0, 0.6);
-            padding: 24px;
-            border-radius: 12px;
-            backdrop-filter: blur(4px);
-            text-align: center;
-            min-width: 280px;
-            pointer-events: auto;
+        .game-container {
+            position: relative;
+            width: 90vw;
+            max-width: 1000px;
+            height: 80vh;
+            background: rgba(20, 20, 20, 0.9);
+            border-radius: 16px;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            color: #fff;
+            box-shadow: 0 0 30px rgba(0, 0, 0, 0.8);
         }
 
-        .answer-card input[type="text"] {
+        h2 {
+            color: #ff7a18;
+            margin: 0 0 10px 0;
+            text-shadow: 0 0 10px rgba(255, 122, 24, 0.5);
+        }
+
+        .instruction {
+            margin-bottom: 15px;
+            color: #ddd;
+        }
+
+        .room-scene {
+            position: relative;
             width: 100%;
-            padding: 10px;
-            border-radius: 8px;
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            background: rgba(255, 255, 255, 0.06);
-            color: #fff;
-            margin-top: 12px;
-            box-sizing: border-box;
+            flex-grow: 1;
+            background-image: url('../assets/images/cozy_bedroom.png');
+            background-size: cover;
+            background-position: center;
+            border-radius: 12px;
+            overflow: hidden;
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            cursor: crosshair;
         }
 
-        .answer-card button {
-            margin-top: 12px;
-            padding: 8px 14px;
-            border-radius: 8px;
-            border: none;
-            background: #ff7a18;
-            color: #fff;
+        .click-zone {
+            position: absolute;
+            /* background: rgba(255, 255, 255, 0.1); */
+            /* Debug: visible zones */
             cursor: pointer;
+            transition: background 0.2s;
         }
 
-        .hidden {
+        .click-zone:hover {
+            background: rgba(255, 255, 255, 0.05);
+            box-shadow: 0 0 15px rgba(255, 255, 255, 0.1) inset;
+        }
+
+        .hidden-sock {
+            position: absolute;
+            width: 50px;
+            /* Slightly smaller */
+            height: auto;
+            opacity: 0.8;
+            /* Visible but blends in */
+            transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            pointer-events: none;
+        }
+
+        .hidden-sock.revealed {
+            opacity: 1;
+            transform: translate(-50%, -50%) scale(1.2) rotate(0deg) !important;
+            filter: drop-shadow(0 0 20px gold);
+            z-index: 10;
+        }
+
+        .feedback-tooltip {
+            position: fixed;
+            background: rgba(255, 0, 0, 0.8);
+            color: white;
+            padding: 5px 10px;
+            border-radius: 4px;
+            font-size: 14px;
+            pointer-events: none;
+            opacity: 0;
+            transform: translate(-50%, -100%);
+            transition: opacity 0.2s;
+            z-index: 20;
+            font-weight: bold;
+        }
+
+        .feedback-tooltip.show {
+            opacity: 1;
+        }
+
+        .result-message {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0, 0, 0, 0.9);
+            padding: 30px;
+            border-radius: 16px;
+            text-align: center;
+            border: 2px solid #7CFC00;
+            z-index: 30;
+            animation: popIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        .result-message.hidden {
             display: none;
+        }
+
+        .result-message h3 {
+            color: #7CFC00;
+            margin-top: 0;
+            font-size: 2rem;
+        }
+
+        .back-btn {
+            display: inline-block;
+            margin-top: 15px;
+            padding: 10px 20px;
+            background: #ff7a18;
+            color: white;
+            text-decoration: none;
+            border-radius: 8px;
+            font-weight: bold;
+        }
+
+        @keyframes popIn {
+            from {
+                transform: translate(-50%, -50%) scale(0.5);
+                opacity: 0;
+            }
+
+            to {
+                transform: translate(-50%, -50%) scale(1);
+                opacity: 1;
+            }
         }
     </style>
 </head>
@@ -87,79 +195,106 @@
         </video>
     </div>
 
-    <!-- overlay that shows input after video ends -->
-    <div id="answerOverlay" class="answer-overlay hidden" role="dialog" aria-modal="true" aria-hidden="true">
-        <div class="answer-card">
-            <div id="prompt">Riddle: Placeholder riddle for Day 10?</div>
-            <input id="answerInput" type="text" placeholder="Type your answer..." aria-label="Answer input" />
-            <div>
-                <button id="submitBtn">Submit</button>
-                <button id="retryBtn" class="hidden">Try again</button>
+    <!-- Game Overlay -->
+    <div id="gameOverlay" class="game-overlay hidden">
+        <div class="game-container">
+            <h2>Santa lost a sock!</h2>
+            <p class="instruction">Find the missing sock! Click around the room to find it.</p>
+
+            <div class="room-scene">
+                <!-- Clickable Zones -->
+                <div class="click-zone" style="top: 65%; left: 5%; width: 25%; height: 25%;" data-id="bed"></div>
+                <div class="click-zone" style="top: 20%; left: 70%; width: 25%; height: 70%;" data-id="wardrobe"></div>
+                <div class="click-zone" style="top: 45%; left: 35%; width: 30%; height: 30%;" data-id="fireplace"></div>
+                <div class="click-zone" style="top: 80%; left: 35%; width: 30%; height: 15%;" data-id="rug"></div>
+                <div class="click-zone" style="top: 20%; left: 5%; width: 25%; height: 20%;" data-id="shelf"></div>
+                <div class="click-zone" style="top: 10%; left: 40%; width: 20%; height: 20%;" data-id="painting"></div>
+
+                <!-- The Sock (Hidden initially) -->
+                <img id="theSock" src="../assets/images/christmas_sock.png" class="hidden-sock" alt="Christmas Sock">
+
+                <!-- Feedback Tooltip -->
+                <div id="feedback" class="feedback-tooltip"></div>
             </div>
-            <div id="result" style="margin-top:12px;font-weight:600"></div>
-            <a href="../index.html" style="display:block;margin-top:10px;color:#fff;opacity:0.9">Back to the village</a>
+
+            <div id="resultMessage" class="result-message hidden">
+                <h3>You found it! And with it a fragment of starlight!</h3>
+                <p>Santa's toes will be warm tonight.</p>
+                <a href="../index.html" class="back-btn">Back to the village</a>
+            </div>
         </div>
     </div>
 
     <script>
         (function () {
-            const correctAnswer = 'placeholder'; // expected answer (case-insensitive)
             const video = document.getElementById('dayVideo');
-            const overlay = document.getElementById('answerOverlay');
-            const input = document.getElementById('answerInput');
-            const submitBtn = document.getElementById('submitBtn');
-            const retryBtn = document.getElementById('retryBtn');
-            const result = document.getElementById('result');
+            const overlay = document.getElementById('gameOverlay');
+            const sock = document.getElementById('theSock');
+            const feedback = document.getElementById('feedback');
+            const resultMessage = document.getElementById('resultMessage');
+            const zones = document.querySelectorAll('.click-zone');
 
-            function showOverlay() {
+            let winningZoneId = null;
+            let isFound = false;
+
+            function initGame() {
                 overlay.classList.remove('hidden');
-                overlay.setAttribute('aria-hidden', 'false');
-                input.value = '';
-                result.textContent = '';
-                retryBtn.classList.add('hidden');
-                submitBtn.classList.remove('hidden');
-                setTimeout(() => input.focus(), 50);
+
+                // Randomly pick a winning zone
+                const zoneIds = Array.from(zones).map(z => z.dataset.id);
+                winningZoneId = zoneIds[Math.floor(Math.random() * zoneIds.length)];
+                console.log("Psst! The sock is hidden in:", winningZoneId);
+
+                // Position the sock within the winning zone (centered)
+                const winningZone = document.querySelector(`.click-zone[data-id="${winningZoneId}"]`);
+                const rect = winningZone.style;
+
+                // Simple centering logic based on the zone's inline styles
+                // We'll just set the sock to be roughly in the middle of that zone
+                sock.style.top = `calc(${rect.top} + ${parseFloat(rect.height) / 2}%)`;
+                sock.style.left = `calc(${rect.left} + ${parseFloat(rect.width) / 2}%)`;
+                sock.style.transform = 'translate(-50%, -50%) scale(0.5) rotate(15deg)'; // Start small
             }
 
-            function hideOverlay() {
-                overlay.classList.add('hidden');
-                overlay.setAttribute('aria-hidden', 'true');
-            }
+            zones.forEach(zone => {
+                zone.addEventListener('click', (e) => {
+                    if (isFound) return;
 
-            function checkAnswer() {
-                const val = (input.value || '').trim().toLowerCase();
-                if (val === correctAnswer) {
-                    result.style.color = '#7CFC00';
-                    result.textContent = 'Correct 🎉';
-                    triggerStarExplosion(); // Trigger animation
-                    submitBtn.classList.add('hidden');
-                    retryBtn.classList.add('hidden');
-                } else {
-                    result.style.color = '#FF6B6B';
-                    result.textContent = 'Wrong — try again';
-                    retryBtn.classList.remove('hidden');
-                }
-            }
+                    const rect = zone.getBoundingClientRect();
+                    const clickX = e.clientX;
+                    const clickY = e.clientY;
 
-            // show the overlay when the video ends
-            video.addEventListener('ended', showOverlay);
+                    if (zone.dataset.id === winningZoneId) {
+                        // FOUND IT!
+                        isFound = true;
+                        sock.classList.add('revealed');
+                        resultMessage.classList.remove('hidden');
 
-            // allow pressing Enter in the input to submit
-            input.addEventListener('keydown', (e) => {
-                if (e.key === 'Enter') {
-                    checkAnswer();
-                }
+                        // Trigger confetti
+                        if (typeof triggerStarExplosion === 'function') {
+                            triggerStarExplosion();
+                        }
+                    } else {
+                        // NOPE
+                        showFeedback(clickX, clickY, "Not here!");
+                    }
+                });
             });
 
-            submitBtn.addEventListener('click', checkAnswer);
-            retryBtn.addEventListener('click', () => {
-                input.value = '';
-                input.focus();
-                result.textContent = '';
-            });
+            function showFeedback(x, y, text) {
+                feedback.textContent = text;
+                feedback.style.left = x + 'px';
+                feedback.style.top = (y - 40) + 'px';
+                feedback.classList.add('show');
 
-            // Optional: start playing automatically on supported browsers
-            // If autoplay is blocked, user can click play (controls are visible).
+                setTimeout(() => {
+                    feedback.classList.remove('show');
+                }, 1000);
+            }
+
+            video.addEventListener('ended', initGame);
+            // For testing:
+            // setTimeout(initGame, 1000);
         })();
     </script>
     <script src="../scripts/utils.js"></script>

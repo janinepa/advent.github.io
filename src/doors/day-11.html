@@ -28,50 +28,194 @@
         }
 
         /* overlay that appears after video ends */
-        .answer-overlay {
+        .game-overlay {
             position: fixed;
             inset: 0;
             display: flex;
             align-items: center;
             justify-content: center;
             z-index: 2;
+            background: rgba(0, 0, 0, 0.85);
+            backdrop-filter: blur(5px);
+            opacity: 1;
+            transition: opacity 0.5s ease;
+        }
+
+        .game-overlay.hidden {
+            opacity: 0;
             pointer-events: none;
-            /* disabled until shown */
         }
 
-        .answer-card {
-            background: rgba(0, 0, 0, 0.6);
-            padding: 24px;
+        .game-container {
+            position: relative;
+            width: 90vw;
+            max-width: 800px;
+            background: rgba(30, 20, 10, 0.95);
+            border: 2px solid #cd7f32;
+            /* Bronze border */
+            border-radius: 16px;
+            padding: 30px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            color: #fff;
+            box-shadow: 0 0 40px rgba(0, 0, 0, 0.9);
+        }
+
+        h2 {
+            color: #cd7f32;
+            margin: 0 0 10px 0;
+            text-shadow: 0 0 10px rgba(205, 127, 50, 0.5);
+            font-family: 'Courier New', Courier, monospace;
+            /* Steampunk vibe */
+        }
+
+        .instruction {
+            margin-bottom: 20px;
+            color: #ddd;
+        }
+
+        .clock-workspace {
+            display: flex;
+            gap: 40px;
+            align-items: center;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .clock-face {
+            position: relative;
+            width: 300px;
+            height: 300px;
+            background-image: url('../assets/images/clock_face.png');
+            background-size: contain;
+            background-repeat: no-repeat;
+            background-position: center;
+            border-radius: 50%;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+        }
+
+        .drop-slot {
+            position: absolute;
+            width: 60px;
+            height: 60px;
+            border: 2px dashed rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            transition: all 0.2s;
+        }
+
+        .drop-slot.drag-over {
+            background: rgba(255, 255, 255, 0.2);
+            border-color: #fff;
+            transform: translate(-50%, -50%) scale(1.1) !important;
+        }
+
+        .gears-pool {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            background: rgba(255, 255, 255, 0.05);
+            padding: 15px;
             border-radius: 12px;
-            backdrop-filter: blur(4px);
-            text-align: center;
-            min-width: 280px;
-            pointer-events: auto;
         }
 
-        .answer-card input[type="text"] {
+        .gear-item {
+            width: 60px;
+            height: 60px;
+            cursor: grab;
+            transition: transform 0.2s;
+        }
+
+        .gear-item:active {
+            cursor: grabbing;
+        }
+
+        .gear-item.dragging {
+            opacity: 0.5;
+        }
+
+        .gear-item img {
             width: 100%;
-            padding: 10px;
-            border-radius: 8px;
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            background: rgba(255, 255, 255, 0.06);
-            color: #fff;
-            margin-top: 12px;
-            box-sizing: border-box;
+            height: 100%;
+            pointer-events: none;
+            /* Let the div handle drag */
         }
 
-        .answer-card button {
-            margin-top: 12px;
-            padding: 8px 14px;
-            border-radius: 8px;
-            border: none;
-            background: #ff7a18;
-            color: #fff;
-            cursor: pointer;
+        .gear-item.placed {
+            width: 100%;
+            height: 100%;
+            cursor: default;
         }
 
-        .hidden {
+        .gear-item.shake {
+            animation: shake 0.5s;
+        }
+
+        .result-message {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0, 0, 0, 0.95);
+            padding: 30px;
+            border-radius: 16px;
+            text-align: center;
+            border: 2px solid #7CFC00;
+            z-index: 30;
+            min-width: 300px;
+        }
+
+        .result-message.hidden {
             display: none;
+        }
+
+        .result-message h3 {
+            color: #7CFC00;
+            margin-top: 0;
+            font-size: 2rem;
+        }
+
+        .back-btn {
+            display: inline-block;
+            margin-top: 15px;
+            padding: 10px 20px;
+            background: #cd7f32;
+            color: white;
+            text-decoration: none;
+            border-radius: 8px;
+            font-weight: bold;
+        }
+
+        @keyframes spin {
+            from {
+                transform: rotate(0deg);
+            }
+
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        @keyframes shake {
+            0% {
+                transform: translateX(0);
+            }
+
+            25% {
+                transform: translateX(-5px);
+            }
+
+            50% {
+                transform: translateX(5px);
+            }
+
+            75% {
+                transform: translateX(-5px);
+            }
+
+            100% {
+                transform: translateX(0);
+            }
         }
     </style>
 </head>
@@ -87,79 +231,136 @@
         </video>
     </div>
 
-    <!-- overlay that shows input after video ends -->
-    <div id="answerOverlay" class="answer-overlay hidden" role="dialog" aria-modal="true" aria-hidden="true">
-        <div class="answer-card">
-            <div id="prompt">Riddle: Placeholder riddle for Day 11?</div>
-            <input id="answerInput" type="text" placeholder="Type your answer..." aria-label="Answer input" />
-            <div>
-                <button id="submitBtn">Submit</button>
-                <button id="retryBtn" class="hidden">Try again</button>
+    <!-- Game Overlay -->
+    <div id="gameOverlay" class="game-overlay hidden">
+        <div class="game-container">
+            <h2>Repair the frozen clock</h2>
+            <p class="instruction">The village clocks have stopped! Drag the gears to their correct slots to get it
+                ticking again.</p>
+
+            <div class="clock-workspace">
+                <!-- Clock Face -->
+                <div class="clock-face">
+                    <div class="drop-slot" data-id="1" style="top: 20%; left: 50%; transform: translate(-50%, -50%);">
+                    </div>
+                    <div class="drop-slot" data-id="2" style="top: 50%; left: 80%; transform: translate(-50%, -50%);">
+                    </div>
+                    <div class="drop-slot" data-id="3" style="top: 80%; left: 50%; transform: translate(-50%, -50%);">
+                    </div>
+                    <div class="drop-slot" data-id="4" style="top: 50%; left: 20%; transform: translate(-50%, -50%);">
+                    </div>
+
+                    <!-- Center pivot -->
+                    <div class="center-pivot"></div>
+                </div>
+
+                <!-- Gears Pool -->
+                <div class="gears-pool">
+                    <div class="gear-item" draggable="true" data-id="1">
+                        <img src="../assets/images/gear.png" alt="Gear 1" style="filter: hue-rotate(0deg);">
+                    </div>
+                    <div class="gear-item" draggable="true" data-id="2">
+                        <img src="../assets/images/gear.png" alt="Gear 2"
+                            style="filter: hue-rotate(90deg) brightness(1.2);">
+                    </div>
+                    <div class="gear-item" draggable="true" data-id="3">
+                        <img src="../assets/images/gear.png" alt="Gear 3"
+                            style="filter: hue-rotate(180deg) sepia(0.5);">
+                    </div>
+                    <div class="gear-item" draggable="true" data-id="4">
+                        <img src="../assets/images/gear.png" alt="Gear 4"
+                            style="filter: hue-rotate(270deg) contrast(1.2);">
+                    </div>
+                </div>
             </div>
-            <div id="result" style="margin-top:12px;font-weight:600"></div>
-            <a href="../index.html" style="display:block;margin-top:10px;color:#fff;opacity:0.9">Back to the village</a>
+
+            <div id="resultMessage" class="result-message hidden">
+                <h3>Tick Tock! 🕰️</h3>
+                <p>The clock is alive! You've earned a fragment of starlight.</p>
+                <a href="../index.html" class="back-btn">Back to the village</a>
+            </div>
         </div>
     </div>
 
     <script>
         (function () {
-            const correctAnswer = 'placeholder'; // expected answer (case-insensitive)
             const video = document.getElementById('dayVideo');
-            const overlay = document.getElementById('answerOverlay');
-            const input = document.getElementById('answerInput');
-            const submitBtn = document.getElementById('submitBtn');
-            const retryBtn = document.getElementById('retryBtn');
-            const result = document.getElementById('result');
+            const overlay = document.getElementById('gameOverlay');
+            const resultMessage = document.getElementById('resultMessage');
+            const slots = document.querySelectorAll('.drop-slot');
+            const gears = document.querySelectorAll('.gear-item');
 
-            function showOverlay() {
+            let placedGears = 0;
+            const totalGears = 4;
+
+            function initGame() {
                 overlay.classList.remove('hidden');
-                overlay.setAttribute('aria-hidden', 'false');
-                input.value = '';
-                result.textContent = '';
-                retryBtn.classList.add('hidden');
-                submitBtn.classList.remove('hidden');
-                setTimeout(() => input.focus(), 50);
             }
 
-            function hideOverlay() {
-                overlay.classList.add('hidden');
-                overlay.setAttribute('aria-hidden', 'true');
-            }
+            // Drag & Drop Logic
+            gears.forEach(gear => {
+                gear.addEventListener('dragstart', (e) => {
+                    e.dataTransfer.setData('text/plain', gear.dataset.id);
+                    gear.classList.add('dragging');
+                });
 
-            function checkAnswer() {
-                const val = (input.value || '').trim().toLowerCase();
-                if (val === correctAnswer) {
-                    result.style.color = '#7CFC00';
-                    result.textContent = 'Correct 🎉';
-                    triggerStarExplosion(); // Trigger animation
-                    submitBtn.classList.add('hidden');
-                    retryBtn.classList.add('hidden');
-                } else {
-                    result.style.color = '#FF6B6B';
-                    result.textContent = 'Wrong — try again';
-                    retryBtn.classList.remove('hidden');
+                gear.addEventListener('dragend', () => {
+                    gear.classList.remove('dragging');
+                });
+            });
+
+            slots.forEach(slot => {
+                slot.addEventListener('dragover', (e) => {
+                    e.preventDefault(); // Allow drop
+                    slot.classList.add('drag-over');
+                });
+
+                slot.addEventListener('dragleave', () => {
+                    slot.classList.remove('drag-over');
+                });
+
+                slot.addEventListener('drop', (e) => {
+                    e.preventDefault();
+                    slot.classList.remove('drag-over');
+
+                    const gearId = e.dataTransfer.getData('text/plain');
+                    const gear = document.querySelector(`.gear-item[data-id="${gearId}"]`);
+
+                    // Simple logic: Any gear fits in any slot for now, or check IDs?
+                    // Let's make it strict: Gear 1 -> Slot 1
+                    if (slot.dataset.id === gearId) {
+                        // Snap into place
+                        slot.appendChild(gear);
+                        gear.draggable = false;
+                        gear.classList.add('placed');
+
+                        // Add spinning animation
+                        gear.querySelector('img').style.animation = 'spin 4s linear infinite';
+
+                        placedGears++;
+                        checkWin();
+                    } else {
+                        // Shake effect for wrong placement?
+                        gear.classList.add('shake');
+                        setTimeout(() => gear.classList.remove('shake'), 500);
+                    }
+                });
+            });
+
+            function checkWin() {
+                if (placedGears === totalGears) {
+                    setTimeout(() => {
+                        resultMessage.classList.remove('hidden');
+                        if (typeof triggerStarExplosion === 'function') {
+                            triggerStarExplosion();
+                        }
+                    }, 500);
                 }
             }
 
-            // show the overlay when the video ends
-            video.addEventListener('ended', showOverlay);
-
-            // allow pressing Enter in the input to submit
-            input.addEventListener('keydown', (e) => {
-                if (e.key === 'Enter') {
-                    checkAnswer();
-                }
-            });
-
-            submitBtn.addEventListener('click', checkAnswer);
-            retryBtn.addEventListener('click', () => {
-                input.value = '';
-                input.focus();
-                result.textContent = '';
-            });
-
-            // Optional: start playing automatically on supported browsers
-            // If autoplay is blocked, user can click play (controls are visible).
+            video.addEventListener('ended', initGame);
+            // For testing:
+            // setTimeout(initGame, 1000);
         })();
     </script>
     <script src="../scripts/utils.js"></script>
