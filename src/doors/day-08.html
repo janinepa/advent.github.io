@@ -89,6 +89,7 @@
             transition: top 0.2s, left 0.2s;
             box-sizing: border-box;
             border: 1px solid rgba(255, 255, 255, 0.5);
+            touch-action: none;
         }
 
         .tile.empty {
@@ -160,8 +161,10 @@
 
             const size = 3; // 3x3 grid
             let tiles = []; // Array of tile objects {x, y, correctX, correctY, element}
-            let emptyTile = { x: 2, y: 2 }; // Start empty at bottom right
+            let emptyTiles = [{ x: 2, y: 2 }, { x: 1, y: 2 }]; // Start with 2 empty tiles
             let isSolved = false;
+            let startX = 0;
+            let startY = 0;
 
             function initGame() {
                 overlay.classList.add('show');
@@ -170,12 +173,14 @@
                 isSolved = false;
                 message.textContent = '';
 
+                // Reset empty tiles
+                emptyTiles = [{ x: 2, y: 2 }, { x: 1, y: 2 }];
+
                 // Create tiles
                 for (let y = 0; y < size; y++) {
                     for (let x = 0; x < size; x++) {
-                        if (x === size - 1 && y === size - 1) {
-                            // Empty slot
-                            emptyTile = { x, y };
+                        // Check if this position should be empty
+                        if (emptyTiles.some(t => t.x === x && t.y === y)) {
                             continue;
                         }
 
@@ -194,7 +199,17 @@
 
                         tiles.push(tileObj);
 
-                        tile.addEventListener('click', () => moveTile(tileObj));
+                        // Unified input handling (Mouse + Touch)
+                        // We remove the simple 'click' listener and handle taps in handleInputEnd
+
+                        // Touch
+                        tile.addEventListener('touchstart', (e) => handleTouchStart(e, tileObj), { passive: false });
+                        tile.addEventListener('touchend', (e) => handleTouchEnd(e, tileObj));
+
+                        // Mouse
+                        tile.addEventListener('mousedown', (e) => handleMouseDown(e, tileObj));
+                        tile.addEventListener('mouseup', (e) => handleMouseUp(e, tileObj));
+
                         board.appendChild(tile);
                     }
                 }
@@ -213,44 +228,112 @@
             function moveTile(tile) {
                 if (isSolved) return;
 
-                // Check adjacency to empty slot
-                const dx = Math.abs(tile.x - emptyTile.x);
-                const dy = Math.abs(tile.y - emptyTile.y);
+                // Check adjacency to any empty slot
+                const targetEmpty = emptyTiles.find(e => {
+                    const dx = Math.abs(tile.x - e.x);
+                    const dy = Math.abs(tile.y - e.y);
+                    return dx + dy === 1;
+                });
 
-                if (dx + dy === 1) {
-                    // Swap positions
-                    const tempX = tile.x;
-                    const tempY = tile.y;
-
-                    tile.x = emptyTile.x;
-                    tile.y = emptyTile.y;
-
-                    emptyTile.x = tempX;
-                    emptyTile.y = tempY;
-
-                    updatePositions();
-                    checkWin();
+                if (targetEmpty) {
+                    swapTiles(tile, targetEmpty);
                 }
+            }
+
+            function handleTouchStart(e, tile) {
+                if (isSolved) return;
+                e.preventDefault(); // Prevent scrolling
+                handleInputStart(e.changedTouches[0].screenX, e.changedTouches[0].screenY);
+            }
+
+            function handleTouchEnd(e, tile) {
+                if (isSolved) return;
+                handleInputEnd(e.changedTouches[0].screenX, e.changedTouches[0].screenY, tile);
+            }
+
+            function handleMouseDown(e, tile) {
+                if (isSolved) return;
+                e.preventDefault();
+                handleInputStart(e.screenX, e.screenY);
+            }
+
+            function handleMouseUp(e, tile) {
+                if (isSolved) return;
+                e.preventDefault();
+                handleInputEnd(e.screenX, e.screenY, tile);
+            }
+
+            function handleInputStart(x, y) {
+                startX = x;
+                startY = y;
+            }
+
+            function handleInputEnd(endX, endY, tile) {
+                const diffX = endX - startX;
+                const diffY = endY - startY;
+
+                // If movement is small, treat as tap/click
+                if (Math.abs(diffX) < 10 && Math.abs(diffY) < 10) {
+                    moveTile(tile); // Fallback to auto-move
+                    return;
+                }
+
+                // Determine direction
+                let targetX = tile.x;
+                let targetY = tile.y;
+
+                if (Math.abs(diffX) > Math.abs(diffY)) {
+                    // Horizontal
+                    if (diffX > 0) targetX++; else targetX--;
+                } else {
+                    // Vertical
+                    if (diffY > 0) targetY++; else targetY--;
+                }
+
+                // Check if target is a valid empty tile
+                const targetEmpty = emptyTiles.find(t => t.x === targetX && t.y === targetY);
+                if (targetEmpty) {
+                    swapTiles(tile, targetEmpty);
+                }
+            }
+
+            function swapTiles(tile, targetEmpty) {
+                const tempX = tile.x;
+                const tempY = tile.y;
+
+                tile.x = targetEmpty.x;
+                tile.y = targetEmpty.y;
+
+                targetEmpty.x = tempX;
+                targetEmpty.y = tempY;
+
+                updatePositions();
+                checkWin();
             }
 
             function shuffleTiles() {
                 // Simulate random valid moves to ensure solvability
                 for (let i = 0; i < 20; i++) {
+                    // Pick a random empty tile to move something into
+                    const targetEmpty = emptyTiles[Math.floor(Math.random() * emptyTiles.length)];
+
                     const neighbors = tiles.filter(t => {
-                        const dx = Math.abs(t.x - emptyTile.x);
-                        const dy = Math.abs(t.y - emptyTile.y);
+                        const dx = Math.abs(t.x - targetEmpty.x);
+                        const dy = Math.abs(t.y - targetEmpty.y);
                         return dx + dy === 1;
                     });
+
+                    if (neighbors.length === 0) continue;
 
                     const randomNeighbor = neighbors[Math.floor(Math.random() * neighbors.length)];
 
                     // Swap without checking win
                     const tempX = randomNeighbor.x;
                     const tempY = randomNeighbor.y;
-                    randomNeighbor.x = emptyTile.x;
-                    randomNeighbor.y = emptyTile.y;
-                    emptyTile.x = tempX;
-                    emptyTile.y = tempY;
+                    randomNeighbor.x = targetEmpty.x;
+                    randomNeighbor.y = targetEmpty.y;
+                    targetEmpty.x = tempX;
+                    targetEmpty.y = tempY;
                 }
                 updatePositions();
             }
