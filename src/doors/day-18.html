@@ -90,7 +90,12 @@
     <!-- overlay that shows input after video ends -->
     <div id="answerOverlay" class="answer-overlay hidden" role="dialog" aria-modal="true" aria-hidden="true">
         <div class="answer-card">
-            <div id="prompt">Riddle: Placeholder riddle for Day 18?</div>
+            <div id="prompt" style="font-size:1.5em;margin:20px 0;line-height:1.6;font-family:monospace">
+                <div>❄️ + 🌲 = 12</div>
+                <div>❄️ - 🌲 = 4</div>
+                <div style="border-top:2px solid #fff;display:inline-block;padding-top:4px;margin-top:4px">❄️ + 🌲 + 🌲
+                    = ?</div>
+            </div>
             <input id="answerInput" type="text" placeholder="Type your answer..." aria-label="Answer input" />
             <div>
                 <button id="submitBtn">Submit</button>
@@ -103,7 +108,7 @@
 
     <script>
         (function () {
-            const correctAnswer = 'placeholder'; // expected answer (case-insensitive)
+            const correctAnswer = '16'; // expected answer (case-insensitive)
             const video = document.getElementById('dayVideo');
             const overlay = document.getElementById('answerOverlay');
             const input = document.getElementById('answerInput');

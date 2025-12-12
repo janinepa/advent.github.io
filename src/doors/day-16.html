@@ -90,7 +90,10 @@
     <!-- overlay that shows input after video ends -->
     <div id="answerOverlay" class="answer-overlay hidden" role="dialog" aria-modal="true" aria-hidden="true">
         <div class="answer-card">
-            <div id="prompt">Riddle: Placeholder riddle for Day 16?</div>
+            <h2 style="color:#ffd700;margin-top:0">The schedules for the trains to the North Pole are a mess.</h2>
+            <div id="prompt" style="font-size:1.2em;margin:20px 0;line-height:1.5">
+                Can you help? The train leaves at midnight and travels 3 hours north, 2 hours east. What time is it now?
+            </div>
             <input id="answerInput" type="text" placeholder="Type your answer..." aria-label="Answer input" />
             <div>
                 <button id="submitBtn">Submit</button>
@@ -103,7 +106,7 @@
 
     <script>
         (function () {
-            const correctAnswer = 'placeholder'; // expected answer (case-insensitive)
+            const correctAnswers = ['5:00', '05:00', '5 am', '05:00 am', '5am', '5']; // expected answers (case-insensitive)
             const video = document.getElementById('dayVideo');
             const overlay = document.getElementById('answerOverlay');
             const input = document.getElementById('answerInput');
@@ -128,7 +131,7 @@
 
             function checkAnswer() {
                 const val = (input.value || '').trim().toLowerCase();
-                if (val === correctAnswer) {
+                if (correctAnswers.includes(val)) {
                     result.style.color = '#7CFC00';
                     result.textContent = 'Correct 🎉';
                     triggerStarExplosion(); // Trigger animation
