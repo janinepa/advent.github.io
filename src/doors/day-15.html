@@ -90,73 +90,48 @@
     <!-- overlay that shows input after video ends -->
     <div id="answerOverlay" class="answer-overlay hidden" role="dialog" aria-modal="true" aria-hidden="true">
         <div class="answer-card">
-            <div id="prompt">Riddle: Placeholder riddle for Day 15?</div>
-            <input id="answerInput" type="text" placeholder="Type your answer..." aria-label="Answer input" />
+            <h2 style="color:#ffd700;margin-top:0">Travel back in time!</h2>
+            <div id="prompt" style="font-size:1.2em;margin:20px 0;line-height:1.5">
+                Relive some old memory and look through old photo books of you as a child to relive Christmas feelings
+                as a child.
+            </div>
             <div>
-                <button id="submitBtn">Submit</button>
-                <button id="retryBtn" class="hidden">Try again</button>
+                <button id="submitBtn">I'll do it! 📸</button>
             </div>
             <div id="result" style="margin-top:12px;font-weight:600"></div>
-            <a href="../index.html" style="display:block;margin-top:10px;color:#fff;opacity:0.9">Back to the village</a>
+            <a href="../index.html" id="backLink" style="display:none;margin-top:10px;color:#fff;opacity:0.9">Back to
+                the village</a>
         </div>
     </div>
 
     <script>
         (function () {
-            const correctAnswer = 'placeholder'; // expected answer (case-insensitive)
             const video = document.getElementById('dayVideo');
             const overlay = document.getElementById('answerOverlay');
-            const input = document.getElementById('answerInput');
             const submitBtn = document.getElementById('submitBtn');
-            const retryBtn = document.getElementById('retryBtn');
             const result = document.getElementById('result');
+            const backLink = document.getElementById('backLink');
 
             function showOverlay() {
                 overlay.classList.remove('hidden');
                 overlay.setAttribute('aria-hidden', 'false');
-                input.value = '';
-                result.textContent = '';
-                retryBtn.classList.add('hidden');
-                submitBtn.classList.remove('hidden');
-                setTimeout(() => input.focus(), 50);
             }
 
-            function hideOverlay() {
-                overlay.classList.add('hidden');
-                overlay.setAttribute('aria-hidden', 'true');
-            }
+            function completeTask() {
+                result.style.color = '#7CFC00';
+                result.textContent = 'Enjoy the nostalgia! ✨';
+                submitBtn.classList.add('hidden');
+                backLink.style.display = 'block';
 
-            function checkAnswer() {
-                const val = (input.value || '').trim().toLowerCase();
-                if (val === correctAnswer) {
-                    result.style.color = '#7CFC00';
-                    result.textContent = 'Correct 🎉';
-                    triggerStarExplosion(); // Trigger animation
-                    submitBtn.classList.add('hidden');
-                    retryBtn.classList.add('hidden');
-                } else {
-                    result.style.color = '#FF6B6B';
-                    result.textContent = 'Wrong — try again';
-                    retryBtn.classList.remove('hidden');
+                if (typeof triggerStarExplosion === 'function') {
+                    triggerStarExplosion();
                 }
             }
 
             // show the overlay when the video ends
             video.addEventListener('ended', showOverlay);
 
-            // allow pressing Enter in the input to submit
-            input.addEventListener('keydown', (e) => {
-                if (e.key === 'Enter') {
-                    checkAnswer();
-                }
-            });
-
-            submitBtn.addEventListener('click', checkAnswer);
-            retryBtn.addEventListener('click', () => {
-                input.value = '';
-                input.focus();
-                result.textContent = '';
-            });
+            submitBtn.addEventListener('click', completeTask);
 
             // Optional: start playing automatically on supported browsers
             // If autoplay is blocked, user can click play (controls are visible).
