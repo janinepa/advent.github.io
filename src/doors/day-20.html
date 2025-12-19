@@ -209,13 +209,30 @@
 
         /* Mobile Layout */
         @media (max-width: 900px) {
+            .game-overlay {
+                justify-content: flex-start;
+                overflow-y: auto;
+                /* Allow scrolling the whole page if needed */
+                padding-top: max(20px, env(safe-area-inset-top));
+                /* Push content down from status bar */
+            }
+
+            .header {
+                flex-direction: column;
+                margin-top: 20px;
+            }
+
             .game-area {
                 flex-direction: column;
                 height: auto;
-                min-height: 85vh;
+                min-height: auto;
+                /* Remove fixed height constraint */
                 gap: 20px;
                 padding: 20px;
-                overflow-y: auto;
+                overflow-y: visible;
+                /* Let the parent overlay handle scrolling */
+                margin-bottom: 40px;
+                /* Space at bottom */
             }
 
             .image-view {

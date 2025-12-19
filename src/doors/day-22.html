@@ -211,12 +211,14 @@
             function resizeCanvas() {
                 // Determine size based on screen
                 const maxSize = Math.min(window.innerWidth - 40, window.innerHeight - 200);
-                const size = Math.floor(maxSize / 20) * 20; // Snap to roughly 20px grid
+                // Make paths wider by using a smaller grid number (e.g. 12x12 instead of 20x20)
+                const GRID_SIZE = 12;
+                const size = Math.floor(maxSize / GRID_SIZE) * GRID_SIZE;
 
                 canvas.width = size;
                 canvas.height = size;
 
-                CELL_SIZE = Math.floor(size / 20); // 20x20 Grid
+                CELL_SIZE = Math.floor(size / GRID_SIZE);
                 COLS = Math.floor(canvas.width / CELL_SIZE);
                 ROWS = Math.floor(canvas.height / CELL_SIZE);
             }

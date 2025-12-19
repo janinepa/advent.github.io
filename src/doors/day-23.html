@@ -49,6 +49,26 @@
             pointer-events: auto;
         }
 
+        .cipher-container {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin: 15px 0;
+            flex-wrap: wrap;
+        }
+
+        .cipher-box {
+            background: rgba(255, 255, 255, 0.15);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 8px;
+            padding: 8px 12px;
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: #fff;
+            min-width: 30px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+        }
+
         .answer-card input[type="text"] {
             width: 100%;
             padding: 10px;
@@ -94,10 +114,17 @@
                 Christmas. </h1>
             <p>Can you solve this puzzle?</p>
             <div id="prompt" style="font-size: 1.1rem; margin: 10px 0;">
-                <p>19 1 14 20 1 = ?</p>
+                <div class="cipher-container">
+                    <span class="cipher-box">19</span>
+                    <span class="cipher-box">1</span>
+                    <span class="cipher-box">14</span>
+                    <span class="cipher-box">20</span>
+                    <span class="cipher-box">1</span>
+                </div>
                 <p style="font-size: 0.9rem; color: #ccc;">(A=1, B=2)</p>
             </div>
-            <input id="answerInput" type="text" placeholder="Type the word..." aria-label="Answer input" />
+            <input id="answerInput" type="text" placeholder="Type the word which results from the numbers..."
+                aria-label="Answer input" />
             <div>
                 <button id="submitBtn">Submit</button>
                 <button id="retryBtn" class="hidden">Try again</button>
