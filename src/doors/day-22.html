@@ -3,16 +3,19 @@
 
 <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
     <title>Advent Calendar - Day 22</title>
     <link rel="stylesheet" href="../styles/main.css">
     <style>
-        /* make the page background a cozy winter image */
         body {
             margin: 0;
             height: 100vh;
             font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
             color: #fff;
+            background: #000;
+            overflow: hidden;
+            touch-action: none;
+            /* Prevent scrolling while drawing */
         }
 
         /* full-viewport video */
@@ -28,46 +31,105 @@
         }
 
         /* overlay that appears after video ends */
-        .answer-overlay {
+        .game-overlay {
             position: fixed;
             inset: 0;
+            background: rgba(10, 20, 30, 0.95);
             display: flex;
+            flex-direction: column;
             align-items: center;
             justify-content: center;
-            z-index: 2;
+            z-index: 10;
+            opacity: 0;
             pointer-events: none;
-            /* disabled until shown */
+            transition: opacity 0.5s;
         }
 
-        .answer-card {
-            background: rgba(0, 0, 0, 0.6);
-            padding: 24px;
-            border-radius: 12px;
-            backdrop-filter: blur(4px);
-            text-align: center;
-            min-width: 280px;
+        .game-overlay.visible {
+            opacity: 1;
             pointer-events: auto;
         }
 
-        .answer-card input[type="text"] {
-            width: 100%;
-            padding: 10px;
-            border-radius: 8px;
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            background: rgba(255, 255, 255, 0.06);
-            color: #fff;
-            margin-top: 12px;
-            box-sizing: border-box;
+        .header {
+            text-align: center;
+            margin-bottom: 20px;
+            padding: 0 20px;
         }
 
-        .answer-card button {
-            margin-top: 12px;
-            padding: 8px 14px;
+        .header h1 {
+            color: #7ef1fa;
+            text-shadow: 0 0 10px rgba(126, 241, 250, 0.5);
+            margin: 0 0 10px 0;
+        }
+
+        .header p {
+            margin: 0;
+            color: #ccc;
+            font-size: 0.9rem;
+        }
+
+        #mazeContainer {
+            position: relative;
+            background: #0a1520;
+            padding: 10px;
             border-radius: 8px;
-            border: none;
-            background: #ff7a18;
-            color: #fff;
-            cursor: pointer;
+            box-shadow: 0 0 30px rgba(126, 241, 250, 0.1);
+            border: 2px solid #2a3b4c;
+        }
+
+        canvas {
+            display: block;
+            border-radius: 4px;
+            background: #0f1f2e;
+            cursor: crosshair;
+            touch-action: none;
+        }
+
+        .win-card {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) scale(0.9);
+            background: rgba(20, 20, 35, 0.98);
+            padding: 40px;
+            border-radius: 20px;
+            text-align: center;
+            border: 2px solid #7CFC00;
+            box-shadow: 0 0 50px rgba(124, 252, 0, 0.2);
+            opacity: 0;
+            pointer-events: none;
+            transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+            z-index: 20;
+            min-width: 300px;
+        }
+
+        .win-card.visible {
+            opacity: 1;
+            pointer-events: auto;
+            transform: translate(-50%, -50%) scale(1);
+        }
+
+        .win-card h2 {
+            color: #7CFC00;
+            font-size: 2rem;
+            margin-top: 0;
+        }
+
+        .back-btn {
+            display: inline-block;
+            margin-top: 20px;
+            padding: 12px 30px;
+            background: linear-gradient(135deg, #ff7a18, #ff5722);
+            color: white;
+            text-decoration: none;
+            border-radius: 50px;
+            font-weight: bold;
+            font-size: 1.1rem;
+            transition: transform 0.2s;
+        }
+
+        .back-btn:hover {
+            transform: translateY(-2px);
         }
 
         .hidden {
@@ -77,92 +139,359 @@
 </head>
 
 <body>
-    <!-- main door container (video fills viewport) -->
-    <div class="door" aria-hidden="false">
+    <!-- Video Intro -->
+    <div class="door">
         <h1 style="position:fixed;left:16px;top:16px;z-index:3;margin:0;font-size:18px">Day 22</h1>
         <video id="dayVideo" controls playsinline preload="metadata" poster="../assets/images/posters/day-22.jpg">
-            <!-- .mov commonly uses video/quicktime -->
             <source src="../assets/videos/day-22.mp4" type="video/mp4">
             Your browser does not support the video tag.
         </video>
     </div>
 
-    <!-- overlay that shows input after video ends -->
-    <div id="answerOverlay" class="answer-overlay hidden" role="dialog" aria-modal="true" aria-hidden="true">
-        <div class="answer-card">
-            <div id="prompt">Riddle: Placeholder riddle for Day 22?</div>
-            <input id="answerInput" type="text" placeholder="Type your answer..." aria-label="Answer input" />
-            <div>
-                <button id="submitBtn">Submit</button>
-                <button id="retryBtn" class="hidden">Try again</button>
-            </div>
-            <div id="result" style="margin-top:12px;font-weight:600"></div>
-            <a href="../index.html" style="display:block;margin-top:10px;color:#fff;opacity:0.9">Back to the village</a>
+    <!-- Game Overlay -->
+    <div id="gameOverlay" class="game-overlay">
+        <div class="header">
+            <h1>The reindeers need help finding their way through the labyrinth</h1>
+            <p>Guide the reindeers from <span style="color:#7CFC00">Start</span> to <span
+                    style="color:#ff7a18">Exit</span>
+            </p>
+        </div>
+
+        <div style="margin-bottom: 10px;">
+            <button id="resetBtn"
+                style="padding: 8px 16px; border-radius: 20px; border: 1px solid rgba(126, 241, 250, 0.5); background: rgba(10,20,30,0.8); color: #7ef1fa; cursor: pointer;">Reset
+                Path</button>
+        </div>
+
+        <div id="mazeContainer">
+            <canvas id="mazeCanvas"></canvas>
+        </div>
+
+        <div class="win-card" id="winCard">
+            <h2>Escaped! 🎉</h2>
+            <p>You found your way through the maze.</p>
+            <a href="../index.html" class="back-btn">Back to Village</a>
         </div>
     </div>
 
+    <script src="../scripts/utils.js"></script>
     <script>
         (function () {
-            const correctAnswer = 'placeholder'; // expected answer (case-insensitive)
             const video = document.getElementById('dayVideo');
-            const overlay = document.getElementById('answerOverlay');
-            const input = document.getElementById('answerInput');
-            const submitBtn = document.getElementById('submitBtn');
-            const retryBtn = document.getElementById('retryBtn');
-            const result = document.getElementById('result');
+            const gameOverlay = document.getElementById('gameOverlay');
+            const canvas = document.getElementById('mazeCanvas');
+            const ctx = canvas.getContext('2d');
+            const winCard = document.getElementById('winCard');
+            const resetBtn = document.getElementById('resetBtn');
 
-            function showOverlay() {
-                overlay.classList.remove('hidden');
-                overlay.setAttribute('aria-hidden', 'false');
-                input.value = '';
-                result.textContent = '';
-                retryBtn.classList.add('hidden');
-                submitBtn.classList.remove('hidden');
-                setTimeout(() => input.focus(), 50);
+            // Maze Config
+            let COLS, ROWS, CELL_SIZE;
+            const WALL_THICKNESS = 2; // Ratio relative to cell for drawing
+            let maze = []; // 2D grid
+            let currentPath = []; // Array of points drawn by user
+            let isDrawing = false;
+            let startCell = { c: 0, r: 0 };
+            let endCell = { c: 0, r: 0 };
+            let solved = false;
+
+            // Flags
+            const N = 1, E = 2, S = 4, W = 8;
+            const OPPOSITE = { [N]: S, [E]: W, [S]: N, [W]: E };
+
+            // Initialize
+            function initGame() {
+                resizeCanvas();
+                generateMaze();
+                currentPath = [];
+                solved = false;
+                winCard.classList.remove('visible');
+                draw();
             }
 
-            function hideOverlay() {
-                overlay.classList.add('hidden');
-                overlay.setAttribute('aria-hidden', 'true');
+            function resizeCanvas() {
+                // Determine size based on screen
+                const maxSize = Math.min(window.innerWidth - 40, window.innerHeight - 200);
+                const size = Math.floor(maxSize / 20) * 20; // Snap to roughly 20px grid
+
+                canvas.width = size;
+                canvas.height = size;
+
+                CELL_SIZE = Math.floor(size / 20); // 20x20 Grid
+                COLS = Math.floor(canvas.width / CELL_SIZE);
+                ROWS = Math.floor(canvas.height / CELL_SIZE);
             }
 
-            function checkAnswer() {
-                const val = (input.value || '').trim().toLowerCase();
-                if (val === correctAnswer) {
-                    result.style.color = '#7CFC00';
-                    result.textContent = 'Correct 🎉';
-                    triggerStarExplosion(); // Trigger animation
-                    submitBtn.classList.add('hidden');
-                    retryBtn.classList.add('hidden');
-                } else {
-                    result.style.color = '#FF6B6B';
-                    result.textContent = 'Wrong — try again';
-                    retryBtn.classList.remove('hidden');
+            // --- Recursive Backtracker Maze Gen ---
+            function generateMaze() {
+                maze = [];
+                for (let r = 0; r < ROWS; r++) {
+                    let row = [];
+                    for (let c = 0; c < COLS; c++) {
+                        row.push({ c, r, walls: N | E | S | W, visited: false });
+                    }
+                    maze.push(row);
+                }
+
+                let stack = [];
+                let current = maze[0][0];
+                current.visited = true;
+
+                // Set start and end
+                startCell = { c: 0, r: 0 };
+                endCell = { c: COLS - 1, r: ROWS - 1 };
+
+                // Generation loop
+                do {
+                    const neighbors = getUnvisitedNeighbors(current);
+                    if (neighbors.length > 0) {
+                        const next = neighbors[Math.floor(Math.random() * neighbors.length)];
+                        stack.push(current);
+
+                        // Remove walls
+                        const dir = getDirection(current, next);
+                        current.walls &= ~dir;
+                        next.walls &= ~OPPOSITE[dir];
+
+                        current = next;
+                        current.visited = true;
+                    } else if (stack.length > 0) {
+                        current = stack.pop();
+                    }
+                } while (stack.length > 0);
+            }
+
+            function getUnvisitedNeighbors(cell) {
+                const neighbors = [];
+                const { c, r } = cell;
+                if (r > 0 && !maze[r - 1][c].visited) neighbors.push(maze[r - 1][c]);
+                if (c < COLS - 1 && !maze[r][c + 1].visited) neighbors.push(maze[r][c + 1]);
+                if (r < ROWS - 1 && !maze[r + 1][c].visited) neighbors.push(maze[r + 1][c]);
+                if (c > 0 && !maze[r][c - 1].visited) neighbors.push(maze[r][c - 1]);
+                return neighbors;
+            }
+
+            function getDirection(a, b) {
+                if (a.r > b.r) return N;
+                if (a.r < b.r) return S;
+                if (a.c > b.c) return W;
+                if (a.c < b.c) return E;
+                return 0;
+            }
+
+            // --- Drawing Logic ---
+            function draw() {
+                // Clear
+                ctx.fillStyle = '#0f1f2e';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+                // Draw Walls
+                ctx.strokeStyle = '#7ef1fa';
+                ctx.lineWidth = 2;
+                ctx.lineCap = 'round';
+
+                for (let r = 0; r < ROWS; r++) {
+                    for (let c = 0; c < COLS; c++) {
+                        const cell = maze[r][c];
+                        const x = c * CELL_SIZE;
+                        const y = r * CELL_SIZE;
+
+                        ctx.beginPath();
+                        if (cell.walls & N) { ctx.moveTo(x, y); ctx.lineTo(x + CELL_SIZE, y); }
+                        if (cell.walls & E) { ctx.moveTo(x + CELL_SIZE, y); ctx.lineTo(x + CELL_SIZE, y + CELL_SIZE); }
+                        if (cell.walls & S) { ctx.moveTo(x, y + CELL_SIZE); ctx.lineTo(x + CELL_SIZE, y + CELL_SIZE); }
+                        if (cell.walls & W) { ctx.moveTo(x, y); ctx.lineTo(x, y + CELL_SIZE); }
+                        ctx.stroke();
+                    }
+                }
+
+                // Draw Start
+                ctx.fillStyle = '#7CFC00'; // Green
+                ctx.beginPath();
+                ctx.arc(startCell.c * CELL_SIZE + CELL_SIZE / 2, startCell.r * CELL_SIZE + CELL_SIZE / 2, CELL_SIZE / 3, 0, Math.PI * 2);
+                ctx.fill();
+
+                // Draw End
+                ctx.fillStyle = '#ff7a18'; // Orange
+                ctx.beginPath();
+                ctx.arc(endCell.c * CELL_SIZE + CELL_SIZE / 2, endCell.r * CELL_SIZE + CELL_SIZE / 2, CELL_SIZE / 3, 0, Math.PI * 2);
+                ctx.fill();
+
+                // Draw User Path
+                if (currentPath.length > 0) {
+                    ctx.strokeStyle = '#ffcc00'; // Gold
+                    ctx.lineWidth = Math.max(2, CELL_SIZE / 3);
+                    ctx.lineCap = 'round';
+                    ctx.lineJoin = 'round';
+                    ctx.beginPath();
+                    ctx.moveTo(currentPath[0].x, currentPath[0].y);
+                    for (let i = 1; i < currentPath.length; i++) {
+                        ctx.lineTo(currentPath[i].x, currentPath[i].y);
+                    }
+                    ctx.stroke();
+
+                    // Optional: Draw a "head" dot to show where to resume
+                    const last = currentPath[currentPath.length - 1];
+                    ctx.fillStyle = '#fff';
+                    ctx.beginPath();
+                    ctx.arc(last.x, last.y, Math.max(2, CELL_SIZE / 4), 0, Math.PI * 2);
+                    ctx.fill();
                 }
             }
 
-            // show the overlay when the video ends
-            video.addEventListener('ended', showOverlay);
+            // --- Input Handling ---
+            function getPos(e) {
+                const rect = canvas.getBoundingClientRect();
+                const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+                const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+                return {
+                    x: clientX - rect.left,
+                    y: clientY - rect.top
+                };
+            }
 
-            // allow pressing Enter in the input to submit
-            input.addEventListener('keydown', (e) => {
-                if (e.key === 'Enter') {
-                    checkAnswer();
+            function getCell(x, y) {
+                if (x < 0 || y < 0 || x >= canvas.width || y >= canvas.height) return null;
+                return {
+                    c: Math.floor(x / CELL_SIZE),
+                    r: Math.floor(y / CELL_SIZE)
+                };
+            }
+
+            function startDraw(e) {
+                if (solved) return;
+                const pos = getPos(e);
+                const cell = getCell(pos.x, pos.y);
+                if (!cell) return;
+
+                // Case 1: New game / Empty path -> Must start at Start Cell
+                if (currentPath.length === 0) {
+                    if (cell.c === startCell.c && cell.r === startCell.r) {
+                        isDrawing = true;
+                        currentPath = [pos];
+                        draw();
+                    }
+                    return;
+                }
+
+                // Case 2: Resume -> Must start near the last point
+                // Simplified: Must start in same cell as last point
+                const lastPos = currentPath[currentPath.length - 1];
+                const lastCell = getCell(lastPos.x, lastPos.y);
+
+                // Allow restart from beginning even if path exists
+                if (cell.c === startCell.c && cell.r === startCell.r) {
+                    isDrawing = true;
+                    currentPath = [pos]; // Reset path
+                    draw();
+                    return;
+                }
+
+                // Resume logic
+                if (cell.c === lastCell.c && cell.r === lastCell.r) {
+                    isDrawing = true;
+                    // Don't clear, just append future points
+                    // Maybe draw a line from last pos to new pos to connect any gap?
+                    // For now, simple jump is okay or push pos
+                    currentPath.push(pos);
+                    draw();
+                }
+            }
+
+            function moveDraw(e) {
+                if (!isDrawing || solved) return;
+                e.preventDefault(); // Stop scrolling on touch
+                const pos = getPos(e);
+
+                // Add point to visual path
+                // Collision Logic
+                const lastPos = currentPath[currentPath.length - 1];
+                const lastCell = getCell(lastPos.x, lastPos.y);
+                const currCell = getCell(pos.x, pos.y);
+
+                if (currCell) {
+                    // If moved to a new cell, check if wall exists between lastCell and currCell
+                    if (lastCell.c !== currCell.c || lastCell.r !== currCell.r) {
+                        const dx = currCell.c - lastCell.c;
+                        const dy = currCell.r - lastCell.r;
+                        let blocked = false;
+
+                        // Only allow orthogonal moves for wall checking simplicity
+                        if (Math.abs(dx) + Math.abs(dy) === 1) {
+                            const currentMazeCell = maze[lastCell.r][lastCell.c];
+                            if (dx === 1 && (currentMazeCell.walls & E)) blocked = true;
+                            if (dx === -1 && (currentMazeCell.walls & W)) blocked = true;
+                            if (dy === 1 && (currentMazeCell.walls & S)) blocked = true;
+                            if (dy === -1 && (currentMazeCell.walls & N)) blocked = true;
+                        }
+
+                        // Also block diagonal jumps or huge skips
+                        if (Math.abs(dx) > 1 || Math.abs(dy) > 1) blocked = true;
+
+                        if (!blocked) {
+                            currentPath.push(pos);
+                            checkWin(currCell);
+                        } else {
+                            // Wall collision: Stop drawing
+                            isDrawing = false;
+                        }
+                    } else {
+                        // Same cell, always allowed
+                        currentPath.push(pos);
+                    }
+                }
+
+                draw();
+            }
+
+            function endDraw(e) {
+                isDrawing = false;
+                // DO NOT reset path here meant to allow lifting finger
+            }
+
+            function checkWin(cell) {
+                if (cell.c === endCell.c && cell.r === endCell.r) {
+                    solved = true;
+                    isDrawing = false;
+                    draw(); // Final state
+                    setTimeout(() => {
+                        triggerStarExplosion();
+                        winCard.classList.add('visible');
+                    }, 200);
+                }
+            }
+
+            // --- Reset Button ---
+            resetBtn.addEventListener('click', () => {
+                currentPath = [];
+                isDrawing = false; // ensure drawing stops
+                draw();
+            });
+
+            // --- Events ---
+            canvas.addEventListener('mousedown', startDraw);
+            window.addEventListener('mousemove', moveDraw);
+            window.addEventListener('mouseup', endDraw);
+
+            canvas.addEventListener('touchstart', startDraw, { passive: false });
+            window.addEventListener('touchmove', moveDraw, { passive: false });
+            window.addEventListener('touchend', endDraw);
+
+            // Interface
+            video.addEventListener('ended', () => {
+                gameOverlay.classList.remove('hidden');
+                void gameOverlay.offsetWidth;
+                gameOverlay.classList.add('visible');
+                setTimeout(initGame, 100);
+            });
+
+            window.addEventListener('resize', () => {
+                if (gameOverlay.classList.contains('visible')) {
+                    initGame();
                 }
             });
 
-            submitBtn.addEventListener('click', checkAnswer);
-            retryBtn.addEventListener('click', () => {
-                input.value = '';
-                input.focus();
-                result.textContent = '';
-            });
-
-            // Optional: start playing automatically on supported browsers
-            // If autoplay is blocked, user can click play (controls are visible).
         })();
     </script>
-    <script src="../scripts/utils.js"></script>
 </body>
 
 </html>

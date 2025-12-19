@@ -7,12 +7,13 @@
     <title>Advent Calendar - Day 20</title>
     <link rel="stylesheet" href="../styles/main.css">
     <style>
-        /* make the page background a cozy winter image */
         body {
             margin: 0;
             height: 100vh;
             font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
             color: #fff;
+            background: #000;
+            overflow: hidden;
         }
 
         /* full-viewport video */
@@ -27,142 +28,384 @@
             background: black;
         }
 
-        /* overlay that appears after video ends */
-        .answer-overlay {
+        /* game overlay that appears after video ends */
+        .game-overlay {
             position: fixed;
             inset: 0;
+            background: rgba(0, 0, 0, 0.85);
+            /* Dark background behind game */
+            backdrop-filter: blur(8px);
+            z-index: 10;
             display: flex;
+            flex-direction: column;
             align-items: center;
             justify-content: center;
-            z-index: 2;
+            opacity: 0;
             pointer-events: none;
-            /* disabled until shown */
+            transition: opacity 0.5s ease;
         }
 
-        .answer-card {
-            background: rgba(0, 0, 0, 0.6);
-            padding: 24px;
-            border-radius: 12px;
-            backdrop-filter: blur(4px);
-            text-align: center;
-            min-width: 280px;
+        .game-overlay.visible {
+            opacity: 1;
             pointer-events: auto;
         }
 
-        .answer-card input[type="text"] {
+        .header {
+            padding: 1rem;
+            text-align: center;
             width: 100%;
-            padding: 10px;
-            border-radius: 8px;
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            background: rgba(255, 255, 255, 0.06);
-            color: #fff;
-            margin-top: 12px;
-            box-sizing: border-box;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 20px;
         }
 
-        .answer-card button {
-            margin-top: 12px;
-            padding: 8px 14px;
-            border-radius: 8px;
-            border: none;
-            background: #ff7a18;
-            color: #fff;
+        .header h1 {
+            margin: 0;
+            font-size: 1.5rem;
+            color: #7ef1fa;
+            /* Ice blue */
+            text-shadow: 0 0 10px rgba(126, 241, 250, 0.5);
+        }
+
+        .counter {
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: #ff7a18;
+            background: rgba(255, 255, 255, 0.1);
+            padding: 6px 16px;
+            border-radius: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .game-area {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 20px;
+            padding: 20px;
+            width: 70vh;
+            max-width: 1200px;
+            height: 70vh;
+        }
+
+        /* Container for each image view */
+        .image-view {
+            position: relative;
+            /* Flex layout handling */
+            flex: 0 1 auto;
+            width: 45%;
+            max-width: 70vh;
+            /* Ensure it doesn't get taller than the container height */
+            aspect-ratio: 1 / 1;
+
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: 0 0 25px rgba(126, 241, 250, 0.2);
+            border: 3px solid rgba(255, 255, 255, 0.2);
+            cursor: crosshair;
+            background: #1a1a2e;
+        }
+
+        .image-view img.bg {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            /* Contain to ensure full image is seen without cropping important playful bits */
+            display: block;
+            pointer-events: none;
+            background: #aed9e0;
+            /* Fallback color matching sky */
+        }
+
+        /* The differences overlay items */
+        .diff-item {
+            position: absolute;
             cursor: pointer;
+            transition: transform 0.2s;
+            filter: drop-shadow(0 0 2px rgba(255, 255, 255, 0.5));
+        }
+
+        .diff-item:hover {
+            transform: scale(1.1);
+            filter: drop-shadow(0 0 5px rgba(255, 255, 255, 0.8));
+        }
+
+        /* Found marker (circle) */
+        .marker {
+            position: absolute;
+            border: 3px solid #7CFC00;
+            border-radius: 50%;
+            box-shadow: 0 0 10px #7CFC00, inset 0 0 10px rgba(124, 252, 0, 0.3);
+            pointer-events: none;
+            transform: translate(-50%, -50%);
+            animation: popIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            z-index: 10;
+        }
+
+        @keyframes popIn {
+            from {
+                transform: translate(-50%, -50%) scale(0);
+            }
+
+            to {
+                transform: translate(-50%, -50%) scale(1);
+            }
+        }
+
+        .win-card {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) scale(0.9);
+            background: rgba(20, 20, 35, 0.95);
+            padding: 40px;
+            border-radius: 20px;
+            text-align: center;
+            border: 2px solid #7ef1fa;
+            box-shadow: 0 0 50px rgba(126, 241, 250, 0.3);
+            opacity: 0;
+            pointer-events: none;
+            transition: all 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+            z-index: 20;
+        }
+
+        .win-card.visible {
+            opacity: 1;
+            pointer-events: auto;
+            transform: translate(-50%, -50%) scale(1);
+        }
+
+        .win-card h2 {
+            margin-top: 0;
+            color: #7CFC00;
+            font-size: 2rem;
+            margin-bottom: 10px;
+        }
+
+        .back-btn {
+            display: inline-block;
+            margin-top: 20px;
+            padding: 12px 24px;
+            background: linear-gradient(135deg, #ff7a18, #ff5722);
+            color: white;
+            text-decoration: none;
+            border-radius: 50px;
+            font-weight: bold;
+            font-size: 1.1rem;
+            transition: transform 0.2s, box-shadow 0.2s;
+            border: none;
+            cursor: pointer;
+        }
+
+        .back-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(255, 87, 34, 0.4);
         }
 
         .hidden {
             display: none;
         }
+
+        /* Mobile Layout */
+        @media (max-width: 900px) {
+            .game-area {
+                flex-direction: column;
+                height: auto;
+                min-height: 85vh;
+                gap: 20px;
+                padding: 20px;
+                overflow-y: auto;
+            }
+
+            .image-view {
+                /* On mobile, occupy full width but don't exceed a reasonable height */
+                /* Force squareness */
+                width: 100%;
+                max-width: 50vh;
+                /* Don't be taller than 50% of the screen height */
+                aspect-ratio: 1 / 1;
+                /* Reset existing width/max-width from desktop */
+                flex: 0 0 auto;
+                height: auto;
+            }
+
+            .header h1 {
+                font-size: 1.2rem;
+            }
+        }
     </style>
 </head>
 
 <body>
-    <!-- main door container (video fills viewport) -->
-    <div class="door" aria-hidden="false">
-        <h1 style="position:fixed;left:16px;top:16px;z-index:3;margin:0;font-size:18px">Day 20</h1>
+    <!-- 1. Video Intro -->
+    <div class="door">
+        <h1 style="position:fixed;left:16px;top:16px;z-index:3;margin:0;font-size:18px;text-shadow:0 0 5px black;">Day
+            20</h1>
         <video id="dayVideo" controls playsinline preload="metadata" poster="../assets/images/posters/day-20.jpg">
-            <!-- .mov commonly uses video/quicktime -->
             <source src="../assets/videos/day-20.mp4" type="video/mp4">
             Your browser does not support the video tag.
         </video>
     </div>
 
-    <!-- overlay that shows input after video ends -->
-    <div id="answerOverlay" class="answer-overlay hidden" role="dialog" aria-modal="true" aria-hidden="true">
-        <div class="answer-card">
-            <div id="prompt">Riddle: Placeholder riddle for Day 20?</div>
-            <input id="answerInput" type="text" placeholder="Type your answer..." aria-label="Answer input" />
-            <div>
-                <button id="submitBtn">Submit</button>
-                <button id="retryBtn" class="hidden">Try again</button>
+    <!-- 2. Game Overlay (Hidden initially) -->
+    <div id="gameOverlay" class="game-overlay">
+        <div class="header">
+            <h1>Something is wrong with the reflection in the frozen lake.</h1>
+            <p class="riddle">Spot the 5 differences!</p>
+
+            <div class="counter">Found: <span id="score">0</span> / 5</div>
+        </div>
+
+        <div class="game-area">
+            <!-- Original Image (Left/Top) -->
+            <div class="image-view" id="view1">
+                <img src="../assets/images/frozen-lake.jpg" class="bg" alt="Frozen Lake Original">
             </div>
-            <div id="result" style="margin-top:12px;font-weight:600"></div>
-            <a href="../index.html" style="display:block;margin-top:10px;color:#fff;opacity:0.9">Back to the village</a>
+
+            <!-- Modified Image (Right/Bottom) -->
+            <div class="image-view" id="view2">
+                <img src="../assets/images/frozen-lake.jpg" class="bg" alt="Frozen Lake Modified">
+
+                <!-- 1. Blue Bird -->
+                <img src="../assets/images/diff-bird.png" class="diff-item" data-id="1"
+                    style="width: 12%; bottom: 25%; left: 18%;">
+
+                <!-- 2. Colorful Skate -->
+                <img src="../assets/images/diff-skate.png" class="diff-item" data-id="2"
+                    style="width: 10%; bottom: 12%; right: 22%; transform: rotate(15deg);">
+
+                <!-- 3. Stylized Crack -->
+                <img src="../assets/images/diff-crack.png" class="diff-item" data-id="3"
+                    style="width: 15%; top: 40%; left: 45%; opacity: 0.8;">
+
+                <!-- 4. Glowing Lantern -->
+                <img src="../assets/images/diff-lantern.png" class="diff-item" data-id="4"
+                    style="width: 8%; bottom: 38%; right: 12%;">
+
+                <!-- 5. Cute Fish -->
+                <img src="../assets/images/diff-fish.png" class="diff-item" data-id="5"
+                    style="width: 11%; top: 55%; left: 8%; opacity: 0.7;">
+            </div>
+        </div>
+
+        <div class="win-card" id="winCard">
+            <h2>Frosty Fantastic! ❄️</h2>
+            <p>You found all the differences of the frozen lake.</p>
+            <a href="../index.html" class="back-btn">Return to Village</a>
         </div>
     </div>
 
+    <script src="../scripts/utils.js"></script>
     <script>
         (function () {
-            const correctAnswer = 'placeholder'; // expected answer (case-insensitive)
             const video = document.getElementById('dayVideo');
-            const overlay = document.getElementById('answerOverlay');
-            const input = document.getElementById('answerInput');
-            const submitBtn = document.getElementById('submitBtn');
-            const retryBtn = document.getElementById('retryBtn');
-            const result = document.getElementById('result');
+            const gameOverlay = document.getElementById('gameOverlay');
+            const winCard = document.getElementById('winCard');
 
-            function showOverlay() {
-                overlay.classList.remove('hidden');
-                overlay.setAttribute('aria-hidden', 'false');
-                input.value = '';
-                result.textContent = '';
-                retryBtn.classList.add('hidden');
-                submitBtn.classList.remove('hidden');
-                setTimeout(() => input.focus(), 50);
+            const scoreEl = document.getElementById('score');
+            const diffItems = document.querySelectorAll('.diff-item');
+            const view2 = document.getElementById('view2');
+
+            const foundIds = new Set();
+            const TOTAL_DIFFS = 5;
+
+            // --- Video Logic ---
+            video.addEventListener('ended', () => {
+                showGame();
+            });
+
+            function showGame() {
+                gameOverlay.classList.remove('hidden'); // Ensure display:flex is active
+                // Force reflow
+                void gameOverlay.offsetWidth;
+                gameOverlay.classList.add('visible');
             }
 
-            function hideOverlay() {
-                overlay.classList.add('hidden');
-                overlay.setAttribute('aria-hidden', 'true');
-            }
+            // --- Game Logic ---
+            function onDiffFound(id, relativeX, relativeY, width, height) {
+                if (foundIds.has(id)) return;
 
-            function checkAnswer() {
-                const val = (input.value || '').trim().toLowerCase();
-                if (val === correctAnswer) {
-                    result.style.color = '#7CFC00';
-                    result.textContent = 'Correct 🎉';
-                    triggerStarExplosion(); // Trigger animation
-                    submitBtn.classList.add('hidden');
-                    retryBtn.classList.add('hidden');
-                } else {
-                    result.style.color = '#FF6B6B';
-                    result.textContent = 'Wrong — try again';
-                    retryBtn.classList.remove('hidden');
+                foundIds.add(id);
+                scoreEl.textContent = foundIds.size;
+
+                // Create markers in BOTH views
+                // We receive relativeX/Y as direct pixel values relative to the container *at time of click*
+                // This is simple and effective.
+                createMarker(document.getElementById('view1'), relativeX, relativeY, width, height);
+                createMarker(document.getElementById('view2'), relativeX, relativeY, width, height);
+
+                if (foundIds.size === TOTAL_DIFFS) {
+                    setTimeout(() => {
+                        triggerStarExplosion();
+                        winCard.classList.add('visible');
+                    }, 500);
                 }
             }
 
-            // show the overlay when the video ends
-            video.addEventListener('ended', showOverlay);
+            function createMarker(container, left, top, width, height) {
+                const marker = document.createElement('div');
+                marker.classList.add('marker');
 
-            // allow pressing Enter in the input to submit
-            input.addEventListener('keydown', (e) => {
-                if (e.key === 'Enter') {
-                    checkAnswer();
+                // Position using pixel values from the click event relative to the container
+                marker.style.left = left + 'px';
+                marker.style.top = top + 'px';
+
+                const maxSize = Math.max(width, height);
+                marker.style.width = (maxSize * 1.2) + 'px'; // Slightly larger than item
+                marker.style.height = (maxSize * 1.2) + 'px';
+
+                container.appendChild(marker);
+            }
+
+            diffItems.forEach(item => {
+                item.addEventListener('click', (e) => {
+                    e.stopPropagation(); // prevent triggering background miss-click
+                    const id = item.getAttribute('data-id');
+
+                    // Get item geometry
+                    const itemRect = item.getBoundingClientRect();
+                    const containerRect = view2.getBoundingClientRect();
+
+                    // Calculate center relative to container
+                    const centerX = (itemRect.left - containerRect.left) + itemRect.width / 2;
+                    const centerY = (itemRect.top - containerRect.top) + itemRect.height / 2;
+
+                    onDiffFound(id, centerX, centerY, itemRect.width, itemRect.height);
+
+                    // Simple pop animation on the item
+                    item.style.transform = 'scale(1.4)';
+                    setTimeout(() => item.style.transform = '', 200);
+                });
+            });
+
+            // Handle misclicks
+            view2.addEventListener('click', (e) => {
+                if (e.target.classList.contains('bg') || e.target.id === 'view2') {
+                    // Shake animation
+                    view2.style.animation = 'none';
+                    view2.offsetHeight; /* trigger reflow */
+                    view2.style.animation = 'shake 0.3s';
                 }
             });
 
-            submitBtn.addEventListener('click', checkAnswer);
-            retryBtn.addEventListener('click', () => {
-                input.value = '';
-                input.focus();
-                result.textContent = '';
-            });
+            // Inject shake keyframes
+            const style = document.createElement('style');
+            style.textContent = `
+                @keyframes shake {
+                    0% { transform: translateX(0); }
+                    25% { transform: translateX(5px); }
+                    50% { transform: translateX(-5px); }
+                    75% { transform: translateX(5px); }
+                    100% { transform: translateX(0); }
+                }
+            `;
+            document.head.appendChild(style);
 
-            // Optional: start playing automatically on supported browsers
-            // If autoplay is blocked, user can click play (controls are visible).
+            // Auto-play video helper (optional)
+            // video.play().catch(() => {});
         })();
     </script>
-    <script src="../scripts/utils.js"></script>
 </body>
 
 </html>

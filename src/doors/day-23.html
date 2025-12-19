@@ -90,8 +90,14 @@
     <!-- overlay that shows input after video ends -->
     <div id="answerOverlay" class="answer-overlay hidden" role="dialog" aria-modal="true" aria-hidden="true">
         <div class="answer-card">
-            <div id="prompt">Riddle: Placeholder riddle for Day 23?</div>
-            <input id="answerInput" type="text" placeholder="Type your answer..." aria-label="Answer input" />
+            <h1>It is almost Christmas! You are so close to finding all the fragments of the star light and save
+                Christmas. </h1>
+            <p>Can you solve this puzzle?</p>
+            <div id="prompt" style="font-size: 1.1rem; margin: 10px 0;">
+                <p>19 1 14 20 1 = ?</p>
+                <p style="font-size: 0.9rem; color: #ccc;">(A=1, B=2)</p>
+            </div>
+            <input id="answerInput" type="text" placeholder="Type the word..." aria-label="Answer input" />
             <div>
                 <button id="submitBtn">Submit</button>
                 <button id="retryBtn" class="hidden">Try again</button>
@@ -103,7 +109,7 @@
 
     <script>
         (function () {
-            const correctAnswer = 'placeholder'; // expected answer (case-insensitive)
+            const correctAnswer = 'santa'; // expected answer (case-insensitive)
             const video = document.getElementById('dayVideo');
             const overlay = document.getElementById('answerOverlay');
             const input = document.getElementById('answerInput');
@@ -130,13 +136,13 @@
                 const val = (input.value || '').trim().toLowerCase();
                 if (val === correctAnswer) {
                     result.style.color = '#7CFC00';
-                    result.textContent = 'Correct 🎉';
+                    result.textContent = 'Correct! It\'s Santa! 🎅';
                     triggerStarExplosion(); // Trigger animation
                     submitBtn.classList.add('hidden');
                     retryBtn.classList.add('hidden');
                 } else {
                     result.style.color = '#FF6B6B';
-                    result.textContent = 'Wrong — try again';
+                    result.textContent = 'Wrong — try decoding again';
                     retryBtn.classList.remove('hidden');
                 }
             }
