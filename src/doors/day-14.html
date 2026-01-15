@@ -15,18 +15,6 @@
             color: #fff;
         }
 
-        /* full-viewport video */
-        .door video {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100vw;
-            height: 100vh;
-            object-fit: cover;
-            z-index: 1;
-            background: black;
-        }
-
         /* overlay that appears after video ends */
         .answer-overlay {
             position: fixed;
@@ -204,8 +192,6 @@
             const playBtns = document.querySelectorAll('.play-btn');
 
             let currentAudio = null;
-
-
 
             // Remove video hiding for consistency with recent changes
             video.addEventListener('ended', () => {

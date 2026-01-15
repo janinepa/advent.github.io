@@ -92,3 +92,23 @@ header {
         opacity: 0;
     }
 }
+
+/* Day Video Styles - Global Responsive Definitions */
+.door video {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    object-fit: cover;
+    /* default for mobile: fills screen */
+    z-index: 1;
+    background: black;
+}
+
+@media (min-width: 768px) {
+    .door video {
+        object-fit: contain;
+        /* laptop/desktop: show full video with black bars */
+    }
+}
