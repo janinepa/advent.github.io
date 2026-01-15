@@ -6,7 +6,7 @@ https://github.com/user-attachments/assets/f153e6b9-219b-49b1-b31d-3cac6d4be336
 
 Behind each day awaits a short animated scene and a small escape-room-style puzzle. Step into a frozen Christmas village, recover the lost starlight, and help time flow again so Christmas can begin.
 
-The site is live at https://janinepa.github.io/advent.github.io/
+The site is live at [https://janinepa.github.io/advent.github.io/](https://janinepa.github.io/advent-calender-web-app/)
 
 ## Features
 
