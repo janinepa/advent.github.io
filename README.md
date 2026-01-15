@@ -1,8 +1,8 @@
 # Advent Calendar Web Application - A Christmas Escape Story
 
 This project is an interactive advent calendar web application that tells a christmas story each day of December, where the user can solve small riddles, puzzles, and mindfulness tasks every day. 
-<video src="src/assets/videos/web-app.mp4" controls="controls" style="max-width: 100%;">
-</video>
+
+![](src/assets/videos/web-app.gif)
 
 Behind each day awaits a short animated scene and a small escape-room-style puzzle. Step into a frozen Christmas village, recover the lost starlight, and help time flow again so Christmas can begin.
 
